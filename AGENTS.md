@@ -44,3 +44,23 @@
 - **Error handling**: Use typed errors (DocNotFoundError, DocNotUniqueError) instead of throwing
 - **Option handling**: Database operations return Options, use `Option.getOrNull` when needed
 - **Service injection**: All Convex operations wrapped to use Effect's Context system
+
+## Convex Restrictions
+
+- **Internal functions**: `internalQuery`, `internalMutation`, `internalAction` can ONLY be called from actions or HTTP actions, never from outside Convex runtime
+- **Return types**: Convex functions (`query`, `mutation`, `action`, `httpAction`) CANNOT return Effect objects like `Option`, `Effect`, `Either` - they must return serializable values only
+- **Context isolation**: Queries cannot call mutations, mutations cannot call other mutations directly
+- **Serialization**: All function arguments and return values must be JSON-serializable (no functions, classes, or Effect types)
+- **Database access**: Only mutations and actions can write to database; queries are read-only
+- **External calls**: Only actions can make HTTP requests or call external APIs
+- **Async boundaries**: Use `E.runPromise` or `E.runSync` to convert Effects to Promises/values at Convex function boundaries
+- **File storage**: File operations (upload/delete) only available in mutations and actions
+- **Scheduling**: `scheduler.runAfter` and `scheduler.runAt` only available in mutations and actions
+- **Auth in scheduled jobs**: `getAuthUserId()` and `getUserIdentity()` ALWAYS return `null` in scheduled functions - use internal functions that don't require auth checks
+- **Database limits**: Queries/mutations can read max 8MiB/16384 docs, mutations can write max 8MiB/8192 docs - design Effect chains to respect these limits
+- **Function timeouts**: Queries/mutations timeout at 1 second, actions at 10 minutes - break long Effect computations accordingly
+- **File storage patterns**: Store file IDs in database, never URLs; use `ctx.storage.getUrl()` to get signed URLs; query `_storage` system table for metadata
+- **Validator usage**: ALWAYS use argument validators (`v.object()`, `v.string()`, etc.) for all Convex functions; NEVER use return validators when starting
+- **Index constraints**: Never include `_creationTime` as last column in custom indexes; use built-in `by_creation_time` and `by_id` indexes
+- **Query filtering**: Use indexes with `withIndex()` instead of `.filter()` for performance; define indexes in schema for common query patterns
+- **Pagination**: Use `paginationOptsValidator` and `.paginate()` for large result sets; returns `{page, isDone, continueCursor}` object
