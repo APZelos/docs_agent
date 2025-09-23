@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    // "lib": ["ESNext"],
+    "target": "es2022",
+    "module": "es2020",
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "rootDir": "./src",
+    "outDir": "dist",
+
+    /* Strictness & Linting */
+    "skipLibCheck": true,
+    "strict": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["effect"],
+
+    /* Path(s) */
+    "baseUrl": ".",
+    "paths": {
+      "@server": ["./src/server"]
+    }
+  },
+  "exclude": ["dist", "example", "node_modules"]
+}
