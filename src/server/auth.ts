@@ -16,10 +16,10 @@ export class Auth {
   /**
    * Get details about the currently authenticated user.
    *
-   * @returns A promise that resolves to a {@link UserIdentity} if the Convex
-   * client was configured with a valid ID token, or if not, will:
-   * + returns `null` on Convex queries, mutations, actions.
-   * + `throw` on HTTP Actions.
+   * @returns An Effect that yields an Option containing a {@link UserIdentity}
+   * if the client was configured with a valid ID token. Returns Option.None
+   * if no user is authenticated. On HTTP Actions, authentication failures
+   * are handled through Effect's error channel.
    */
   getUserIdentity(): E.Effect<Option.Option<UserIdentity>, never, never> {
     return E.promise(async () => this.convexAuth.getUserIdentity()).pipe(E.map(Option.fromNullable))

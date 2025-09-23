@@ -25,6 +25,13 @@ import {DocNotUniqueError} from "./error"
 
 /**
  * A {@link Query} with an order that has already been defined.
+ *
+ * This Effect-based wrapper provides ordered query operations that return
+ * Effects instead of Promises. All methods can be chained and composed
+ * using Effect's functional combinators.
+ *
+ * OrderedQuery extends the base query interface with ordering constraints,
+ * ensuring that operations like pagination work correctly with ordered data.
  */
 export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
   convexQuery: ConvexOrderedQuery<TableInfo>
@@ -37,7 +44,7 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
    * Filter the query output, returning only the values for which `predicate` evaluates to true.
    *
    * @param predicate - An {@link Expression} constructed with the supplied {@link FilterBuilder} that specifies which documents to keep.
-   * @returns - A new {@link OrderedQuery} with the given filter predicate applied.
+   * @returns A new {@link OrderedQuery} with the given filter predicate applied.
    */
   filter(
     predicate: (q: FilterBuilder<TableInfo>) => ExpressionOrValue<boolean>,
@@ -57,8 +64,8 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
    *
    * @param paginationOpts - A {@link PaginationOptions} object containing the number
    * of items to load and the cursor to start at.
-   * @returns A {@link PaginationResult} containing the page of results and a
-   * cursor to continue paginating.
+   * @returns An Effect that yields a {@link PaginationResult} containing the page
+   * of results and a cursor to continue paginating.
    */
   paginate(
     paginationOpts: PaginationOptions,
@@ -72,7 +79,7 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
    * Note: when processing a query with a lot of results, it's often better to use the `Query` as an
    * `AsyncIterable` instead.
    *
-   * @returns - An array of all of the query's results.
+   * @returns An Effect that yields an array of all the query's results.
    */
   collect(): E.Effect<ConvexDocumentByInfo<TableInfo>[], never, never> {
     return E.promise(async () => this.convexQuery.collect())
@@ -82,8 +89,8 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
    * Execute the query and return the first `n` results.
    *
    * @param n - The number of items to take.
-   * @returns - An array of the first `n` results of the query (or less if the
-   * query doesn't have `n` results).
+   * @returns An Effect that yields an array of the first `n` results of the query
+   * (or less if the query doesn't have `n` results).
    */
   take(n: number): E.Effect<ConvexDocumentByInfo<TableInfo>[], never, never> {
     return E.promise(async () => this.convexQuery.take(n))
@@ -92,8 +99,9 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
   /**
    * Execute the query and return the first result if there is one.
    *
-   * @returns - The first value of the query or `null` if the query returned no results.
-   * */
+   * @returns An Effect that yields an Option containing the first document
+   * if the query has results, or Option.None if the query is empty.
+   */
   first(): E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo>>, never, never> {
     return E.promise(async () => this.convexQuery.first()).pipe(E.map(Option.fromNullable))
   }
@@ -101,8 +109,9 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
   /**
    * Execute the query and return the singular result if there is one.
    *
-   * @returns - The single result returned from the query or null if none exists.
-   * @throws  Will throw an error if the query returns more than one result.
+   * @returns An Effect that yields an Option containing the single document,
+   * or Option.None if no documents exist. Fails with DocNotUniqueError if
+   * multiple documents are found.
    */
   unique(): E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo>>, DocNotUniqueError, never> {
     return this.take(2)
@@ -124,10 +133,13 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
  *
  * **If you only need to load an object by ID, use `db.get(id)` instead.**
  *
+ * This Effect-based wrapper provides composable database queries that return Effects
+ * instead of Promises. All query operations can be chained using Effect combinators.
+ *
  * Executing a query consists of calling
  * 1. (Optional) {@link Query.order} to define the order
  * 2. (Optional) {@link Query.filter} to refine the results
- * 3. A *consumer* method to obtain the results
+ * 3. A *consumer* method to obtain the results as an Effect
  *
  * Queries are lazily evaluated. No work is done until iteration begins, so constructing and
  * extending a query is free. The query is executed incrementally as the results are iterated over,
@@ -143,12 +155,11 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
  * | **Filtering**                                | |
  * | [`filter(...)`](#filter)                     | Filter the query results to only the values that match some condition. |
  * |                                              | |
- * | **Consuming**                                | Execute a query and return results in different ways. |
- * | [`[Symbol.asyncIterator]()`](#asynciterator) | The query's results can be iterated over using a `for await..of` loop. |
- * | [`collect()`](#collect)                      | Return all of the results as an array. |
- * | [`take(n: number)`](#take)                   | Return the first `n` results as an array. |
- * | [`first()`](#first)                          | Return the first result. |
- * | [`unique()`](#unique)                        | Return the only result, and throw if there is more than one result. |
+ * | **Consuming**                                | Execute a query and return results as Effects. |
+ * | [`collect()`](#collect)                      | Return all of the results as an Effect<Array>. |
+ * | [`take(n: number)`](#take)                   | Return the first `n` results as an Effect<Array>. |
+ * | [`first()`](#first)                          | Return the first result as an Effect<Option>. |
+ * | [`unique()`](#unique)                        | Return the only result as Effect<Option>, fails with DocNotUniqueError if multiple found. |
  *
  * To learn more about how to write queries, see [Querying the Database](https://docs.convex.dev/using/database-queries).
  */
@@ -164,7 +175,7 @@ export class Query<TableInfo extends ConvexGenericTableInfo> extends OrderedQuer
    * Filter the query output, returning only the values for which `predicate` evaluates to true.
    *
    * @param predicate - An {@link Expression} constructed with the supplied {@link FilterBuilder} that specifies which documents to keep.
-   * @returns - A new {@link OrderedQuery} with the given filter predicate applied.
+   * @returns A new {@link Query} with the given filter predicate applied.
    */
   override filter(
     predicate: (q: FilterBuilder<TableInfo>) => ExpressionOrValue<boolean>,
@@ -187,6 +198,9 @@ export class Query<TableInfo extends ConvexGenericTableInfo> extends OrderedQuer
  * The {@link QueryInitializer} interface is the entry point for building a {@link Query}
  * over a Convex database table.
  *
+ * This Effect-based wrapper provides composable query building that returns Effects
+ * instead of Promises. All query operations can be chained using Effect combinators.
+ *
  * There are two types of queries:
  * 1. Full table scans: Queries created with {@link QueryInitializer.fullTableScan} which
  * iterate over all of the documents in the table in insertion order.
@@ -195,6 +209,15 @@ export class Query<TableInfo extends ConvexGenericTableInfo> extends OrderedQuer
  *
  * For convenience, {@link QueryInitializer} extends the {@link Query} interface, implicitly
  * starting a full table scan.
+ *
+ * @example
+ * ```typescript
+ * // Index query with Effect composition
+ * const activeUsers = yield* db.query("users")
+ *   .withIndex("by_status", q => q.eq("status", "active"))
+ *   .collect()
+ *   .pipe(E.map(users => users.length))
+ * ```
  */
 export class QueryInitializer<TableInfo extends ConvexGenericTableInfo> extends Query<TableInfo> {
   override convexQuery: ConvexQueryInitializer<TableInfo>
@@ -211,7 +234,7 @@ export class QueryInitializer<TableInfo extends ConvexGenericTableInfo> extends 
    * should only be used on tables that will stay very small (say between a few
    * hundred and a few thousand documents) and are updated infrequently.
    *
-   * @returns - The {@link Query} that iterates over every document of the table.
+   * @returns The {@link Query} that iterates over every document of the table.
    */
   fullTableScan(): Query<TableInfo> {
     return new Query(this.convexQuery.fullTableScan())
@@ -232,7 +255,7 @@ export class QueryInitializer<TableInfo extends ConvexGenericTableInfo> extends 
    *  {@link IndexRangeBuilder}. An index range is a description of which
    * documents Convex should consider when running the query. If no index
    * range is present, the query will consider all documents in the index.
-   * @returns - The query that yields documents in the index.
+   * @returns The query that yields documents in the index.
    */
   withIndex<IndexName extends IndexNames<TableInfo>>(
     indexName: IndexName,
@@ -259,7 +282,7 @@ export class QueryInitializer<TableInfo extends ConvexGenericTableInfo> extends 
    * @param searchFilter - A search filter expression constructed with the
    * supplied {@link SearchFilterBuilder}. This defines the full text search to run
    * along with equality filtering to run within the search index.
-   * @returns - A query that searches for matching documents, returning them
+   * @returns A query that searches for matching documents, returning them
    * in relevancy order.
    */
   withSearchIndex<IndexName extends SearchIndexNames<TableInfo>>(

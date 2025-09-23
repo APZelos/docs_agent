@@ -24,11 +24,45 @@ import {Effect as E, pipe} from "effect"
 
 import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} from "./context"
 
+/**
+ * Configuration arguments for creating Effect-based Convex functions.
+ *
+ * This interface defines the Context tags required to create typed
+ * Convex functions with Effect-based handlers.
+ */
 export interface CreateFunctionsArgs<DataModel extends GenericDataModel> {
+  /** Context tag for query operations */
   QueryCtx: QueryCtxTag<DataModel>
+  /** Context tag for mutation operations */
   MutationCtx: MutationCtxTag<DataModel>
 }
 
+/**
+ * Create a set of Effect-based Convex function builders.
+ *
+ * This function returns an object containing query, mutation, and HTTP action
+ * builders that work with Effect handlers instead of Promise-based handlers.
+ *
+ * @param args - Configuration containing the Context tags for dependency injection
+ * @returns An object with Effect-based function builders: query, internalQuery,
+ * mutation, internalMutation, and httpAction
+ *
+ * @example
+ * ```typescript
+ * const QueryCtx = createQueryCtx<DataModel>()
+ * const MutationCtx = createMutationCtx<DataModel>()
+ *
+ * const {query, mutation} = createFunctions({QueryCtx, MutationCtx})
+ *
+ * export const getUser = query({
+ *   args: {id: v.id("users")},
+ *   handler: E.fn(function* (args) {
+ *     const {db} = yield* QueryCtx
+ *     return yield* db.get(args.id)
+ *   })
+ * })
+ * ```
+ */
 export function createFunctions<DataModel extends GenericDataModel>({
   QueryCtx,
   MutationCtx,
@@ -37,8 +71,9 @@ export function createFunctions<DataModel extends GenericDataModel>({
    * Define a query in this Convex app's public API.
    *
    * This function will be allowed to read your Convex database and will be accessible from the client.
+   * The handler returns an Effect that can be composed using functional combinators.
    *
-   * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+   * @param func - The query function handler that returns an Effect. Access services through `yield* QueryCtx`.
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
   function query<
@@ -85,8 +120,9 @@ export function createFunctions<DataModel extends GenericDataModel>({
    * Define a query that is only accessible from other Convex functions (but not from the client).
    *
    * This function will be allowed to read from your Convex database. It will not be accessible from the client.
+   * The handler returns an Effect that can be composed using functional combinators.
    *
-   * @param func - The query function. It receives a {@link QueryCtx} as its first argument.
+   * @param func - The query function handler that returns an Effect. Access services through `yield* QueryCtx`.
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
   function internalQuery<
@@ -133,8 +169,9 @@ export function createFunctions<DataModel extends GenericDataModel>({
    * Define a mutation in this Convex app's public API.
    *
    * This function will be allowed to modify your Convex database and will be accessible from the client.
+   * The handler returns an Effect that can be composed using functional combinators.
    *
-   * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+   * @param func - The mutation function handler that returns an Effect. Access services through `yield* MutationCtx`.
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
   function mutation<
@@ -185,8 +222,9 @@ export function createFunctions<DataModel extends GenericDataModel>({
    * Define a mutation that is only accessible from other Convex functions (but not from the client).
    *
    * This function will be allowed to modify your Convex database. It will not be accessible from the client.
+   * The handler returns an Effect that can be composed using functional combinators.
    *
-   * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
+   * @param func - The mutation function handler that returns an Effect. Access services through `yield* MutationCtx`.
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
   function internalMutation<
@@ -322,7 +360,9 @@ export function createFunctions<DataModel extends GenericDataModel>({
    * deployment if the requests matches the path and method where this action
    * is routed. Be sure to route your action in `convex/http.js`.
    *
-   * @param func - The function. It receives an {@link ActionCtx} as its first argument.
+   * The handler returns an Effect that can be composed using functional combinators.
+   *
+   * @param func - The function handler that returns an Effect<Response>. Access services through `yield* HttpActionCtx`.
    * @returns The wrapped function. Import this function from `convex/http.js` and route it to hook it up.
    */
   function httpAction<E = never>(

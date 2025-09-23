@@ -25,8 +25,11 @@ import {StorageActionWriter, StorageReader, StorageWriter} from "./storage"
 /**
  * A set of services for use within Convex query functions.
  *
- * The query context is passed as the first argument to any Convex query
- * function run on the server.
+ * This Effect-based wrapper provides query context through Effect's Context system,
+ * enabling dependency injection and composable service access. All services return
+ * Effects instead of Promises for functional composition.
+ *
+ * The query context is injected into Effect handlers using `yield* QueryCtx`.
  *
  * This differs from the {@link MutationCtx} because all of the services are
  * read-only.
@@ -57,11 +60,36 @@ export class GenericQueryCtx<DataModel extends GenericDataModel> {
   }
 }
 
+/**
+ * Effect Context tag for GenericQueryCtx.
+ *
+ * This type represents the Context tag used for dependency injection
+ * of query context services into Effect computations.
+ */
 export type QueryCtxTag<DataModel extends GenericDataModel> = Context.Tag<
   GenericQueryCtx<DataModel>,
   GenericQueryCtx<DataModel>
 >
 
+/**
+ * Create a Context tag for query context dependency injection.
+ *
+ * This function creates a typed Context tag that enables Effect-based
+ * dependency injection of query context services.
+ *
+ * @returns A Context tag for GenericQueryCtx that can be used with
+ * `yield* QueryCtx` to access query services.
+ *
+ * @example
+ * ```typescript
+ * const QueryCtx = createQueryCtx<DataModel>()
+ *
+ * const handler = E.fn(function* () {
+ *   const {db} = yield* QueryCtx
+ *   return yield* db.query("users").collect()
+ * })
+ * ```
+ */
 export function createQueryCtx<DataModel extends GenericDataModel>(): QueryCtxTag<DataModel> {
   return Context.GenericTag<GenericQueryCtx<DataModel>>("QueryCtx")
 }
@@ -69,8 +97,11 @@ export function createQueryCtx<DataModel extends GenericDataModel>(): QueryCtxTa
 /**
  * A set of services for use within Convex mutation functions.
  *
- * The mutation context is passed as the first argument to any Convex mutation
- * function run on the server.
+ * This Effect-based wrapper provides mutation context through Effect's Context system,
+ * enabling dependency injection and composable service access. All services return
+ * Effects instead of Promises for functional composition.
+ *
+ * The mutation context is injected into Effect handlers using `yield* MutationCtx`.
  */
 export class GenericMutationCtx<DataModel extends GenericDataModel> {
   convexMutationCtx: ConvexGenericMutationCtx<DataModel>
@@ -104,11 +135,36 @@ export class GenericMutationCtx<DataModel extends GenericDataModel> {
   }
 }
 
+/**
+ * Effect Context tag for GenericMutationCtx.
+ *
+ * This type represents the Context tag used for dependency injection
+ * of mutation context services into Effect computations.
+ */
 export type MutationCtxTag<DataModel extends GenericDataModel> = Context.Tag<
   GenericMutationCtx<DataModel>,
   GenericMutationCtx<DataModel>
 >
 
+/**
+ * Create a Context tag for mutation context dependency injection.
+ *
+ * This function creates a typed Context tag that enables Effect-based
+ * dependency injection of mutation context services.
+ *
+ * @returns A Context tag for GenericMutationCtx that can be used with
+ * `yield* MutationCtx` to access mutation services.
+ *
+ * @example
+ * ```typescript
+ * const MutationCtx = createMutationCtx<DataModel>()
+ *
+ * const handler = E.fn(function* (args) {
+ *   const {db} = yield* MutationCtx
+ *   return yield* db.insert("users", args)
+ * })
+ * ```
+ */
 export function createMutationCtx<DataModel extends GenericDataModel>(): MutationCtxTag<DataModel> {
   return Context.GenericTag<GenericMutationCtx<DataModel>>("MutationCtx")
 }
@@ -116,8 +172,11 @@ export function createMutationCtx<DataModel extends GenericDataModel>(): Mutatio
 /**
  * A set of services for use within Convex action functions.
  *
- * The context is passed as the first argument to any Convex action
- * run on the server.
+ * This Effect-based wrapper provides action context through Effect's Context system,
+ * enabling dependency injection and composable service access. All services return
+ * Effects instead of Promises for functional composition.
+ *
+ * The action context is injected into Effect handlers using `yield* ActionCtx`.
  */
 export class GenericActionCtx<DataModel extends GenericDataModel> {
   convexActionCtx: ConvexGenericActionCtx<DataModel>
@@ -152,7 +211,7 @@ export class GenericActionCtx<DataModel extends GenericDataModel> {
    *
    * @param query - A {@link FunctionReference} for the query to run.
    * @param args - The arguments to the query function.
-   * @returns A promise of the query's result.
+   * @returns An Effect that yields the query's result.
    */
   runQuery<Query extends FunctionReference<"query", FunctionVisibility>>(
     query: Query,
@@ -169,7 +228,7 @@ export class GenericActionCtx<DataModel extends GenericDataModel> {
    *
    * @param mutation - A {@link FunctionReference} for the mutation to run.
    * @param args - The arguments to the mutation function.
-   * @returns A promise of the mutation's result.
+   * @returns An Effect that yields the mutation's result.
    */
   runMutation<Mutation extends FunctionReference<"mutation", FunctionVisibility>>(
     mutation: Mutation,
@@ -186,7 +245,7 @@ export class GenericActionCtx<DataModel extends GenericDataModel> {
    *
    * @param action - A {@link FunctionReference} for the action to run.
    * @param args - The arguments to the action function.
-   * @returns A promise of the action's result.
+   * @returns An Effect that yields the action's result.
    */
   runAction<Action extends FunctionReference<"action", FunctionVisibility>>(
     action: Action,
@@ -196,14 +255,12 @@ export class GenericActionCtx<DataModel extends GenericDataModel> {
   }
 
   /**
-   * Run the Convex action with the given name and arguments.
+   * Perform vector search on the specified table and index.
    *
-   * Consider using an {@link internalAction} to prevent users from calling the
-   * action directly.
-   *
-   * @param action - A {@link FunctionReference} for the action to run.
-   * @param args - The arguments to the action function.
-   * @returns A promise of the action's result.
+   * @param tableName - The name of the table to search.
+   * @param indexName - The name of the vector index to use.
+   * @param query - The vector search query configuration.
+   * @returns An Effect that yields an array of search results with scores.
    */
   vectorSearch<
     TableName extends TableNamesInDataModel<DataModel>,
@@ -217,13 +274,53 @@ export class GenericActionCtx<DataModel extends GenericDataModel> {
   }
 }
 
+/**
+ * Effect Context tag for GenericActionCtx.
+ *
+ * This type represents the Context tag used for dependency injection
+ * of action context services into Effect computations.
+ */
 export type ActionCtxTag<DataModel extends GenericDataModel> = Context.Tag<
   GenericActionCtx<DataModel>,
   GenericActionCtx<DataModel>
 >
 
+/**
+ * Create a Context tag for action context dependency injection.
+ *
+ * This function creates a typed Context tag that enables Effect-based
+ * dependency injection of action context services.
+ *
+ * @returns A Context tag for GenericActionCtx that can be used with
+ * `yield* ActionCtx` to access action services.
+ *
+ * @example
+ * ```typescript
+ * const ActionCtx = createActionCtx<DataModel>()
+ *
+ * const handler = E.fn(function* (args) {
+ *   const {runQuery} = yield* ActionCtx
+ *   return yield* runQuery(api.queries.getUser, {id: args.userId})
+ * })
+ * ```
+ */
 export function createActionCtx<DataModel extends GenericDataModel>(): ActionCtxTag<DataModel> {
   return Context.GenericTag<GenericActionCtx<DataModel>>("ActionCtx")
 }
 
+/**
+ * Pre-configured Context tag for HTTP Action context.
+ *
+ * This is a ready-to-use Context tag for HTTP actions that use the
+ * generic data model. Use this for HTTP actions that don't need
+ * a specific typed data model.
+ *
+ * @example
+ * ```typescript
+ * const httpHandler = E.fn(function* (request: Request) {
+ *   const {storage} = yield* HttpActionCtx
+ *   return yield* storage.generateUploadUrl()
+ * })
+ * ```
+ */
 export const HttpActionCtx = Context.GenericTag<GenericActionCtx<GenericDataModel>>("HttpActionCtx")

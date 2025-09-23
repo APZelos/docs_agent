@@ -18,10 +18,23 @@ import {QueryInitializer} from "./query"
 /**
  * An interface to read from the database within Convex query functions.
  *
+ * This Effect-based wrapper provides type-safe database operations that return
+ * Effects instead of Promises. Operations can be composed using Effect's
+ * functional combinators like pipe(), flatMap(), and map().
+ *
  * The two entry points are:
- *   - {@link GenericDatabaseReader.get}, which fetches a single document
- *     by its {@link values.GenericId}.
- *   - {@link GenericDatabaseReader.query}, which starts building a query.
+ *   - {@link GenericDatabaseReader.get}, which returns an Effect<Option<T>>
+ *   - {@link GenericDatabaseReader.query}, which returns composable query Effects
+ *
+ * @example
+ * ```typescript
+ * const user = yield* db.get(userId).pipe(
+ *   E.flatMap(Option.match({
+ *     onNone: () => E.fail(new DocNotFoundError()),
+ *     onSome: (user) => E.succeed(user)
+ *   }))
+ * )
+ * ```
  */
 export class GenericDatabaseReader<DataModel extends GenericDataModel> {
   convexDb: ConvexGenericDatabaseReader<DataModel>
@@ -34,7 +47,8 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
    * Fetch a single document from the database by its {@link values.GenericId}.
    *
    * @param id - The {@link values.GenericId} of the document to fetch from the database.
-   * @returns - The {@link GenericDocument} of the document at the given {@link values.GenericId}, or `null` if it no longer exists.
+   * @returns An Effect that yields an Option containing the document if it exists,
+   * or Option.None if the document is not found. The Effect never fails.
    */
   get<TableName extends TableNamesInDataModel<DataModel>>(
     id: GenericId<TableName>,
@@ -58,16 +72,17 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
   }
 
   /**
-   * Returns the string ID format for the ID in a given table, or null if the ID
-   * is from a different table or is not a valid ID.
+   * Returns the string ID format for the ID in a given table.
    *
    * This accepts the string ID format as well as the `.toString()` representation
    * of the legacy class-based ID format.
    *
-   * This does not guarantee that the ID exists (i.e. `db.get(id)` may return `null`).
+   * This does not guarantee that the ID exists (i.e. `db.get(id)` may return Option.None).
    *
    * @param tableName - The name of the table.
    * @param id - The ID string.
+   * @returns An Effect that yields the normalized ID or fails with DocInvalidId
+   * if the ID is invalid for the given table.
    */
   normalizeId<TableName extends TableNamesInDataModel<DataModel>>(
     tableName: TableName,
@@ -90,6 +105,9 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
  * An interface to read from and write to the database within Convex mutation
  * functions.
  *
+ * This Effect-based wrapper extends GenericDatabaseReader with write operations
+ * that return Effects for composable, type-safe database mutations.
+ *
  * Convex guarantees that all writes within a single mutation are
  * executed atomically, so you never have to worry about partial writes leaving
  * your data in an inconsistent state. See [the Convex Guide](https://docs.convex.dev/understanding/convex-fundamentals/functions#atomicity-and-optimistic-concurrency-control)
@@ -110,7 +128,7 @@ export class GenericDatabaseWriter<
    *
    * @param table - The name of the table to insert a new document into.
    * @param value - The {@link values.Value} to insert into the given table.
-   * @returns - {@link values.GenericId} of the new document.
+   * @returns An Effect that yields the {@link values.GenericId} of the new document.
    */
   insert<TableName extends TableNamesInDataModel<DataModel>>(
     table: TableName,
@@ -129,6 +147,7 @@ export class GenericDatabaseWriter<
    * @param id - The {@link values.GenericId} of the document to patch.
    * @param value - The partial {@link GenericDocument} to merge into the specified document. If this new value
    * specifies system fields like `_id`, they must match the document's existing field values.
+   * @returns An Effect that completes when the patch operation succeeds.
    */
   patch<TableName extends TableNamesInDataModel<DataModel>>(
     id: GenericId<TableName>,
@@ -143,6 +162,7 @@ export class GenericDatabaseWriter<
    * @param id - The {@link values.GenericId} of the document to replace.
    * @param value - The new {@link GenericDocument} for the document. This value can omit the system fields,
    * and the database will fill them in.
+   * @returns An Effect that completes when the replace operation succeeds.
    */
   replace<TableName extends TableNamesInDataModel<DataModel>>(
     id: GenericId<TableName>,
@@ -155,6 +175,7 @@ export class GenericDatabaseWriter<
    * Delete an existing document.
    *
    * @param id - The {@link values.GenericId} of the document to remove.
+   * @returns An Effect that completes when the delete operation succeeds.
    */
   delete<TableName extends TableNamesInDataModel<DataModel>>(
     id: GenericId<TableName>,

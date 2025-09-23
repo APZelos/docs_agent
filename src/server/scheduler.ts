@@ -10,6 +10,9 @@ import {Effect as E} from "effect"
 /**
  * An interface to schedule Convex functions.
  *
+ * This Effect-based wrapper provides composable function scheduling that returns
+ * Effects instead of Promises, enabling functional composition and error handling.
+ *
  * You can schedule either mutations or actions. Mutations are guaranteed to execute
  * exactly once - they are automatically retried on transient errors and either execute
  * successfully or fail deterministically due to developer error in defining the
@@ -35,7 +38,8 @@ export class Scheduler {
    * @param functionReference - A {@link FunctionReference} for the function
    * to schedule.
    * @param args - Arguments to call the scheduled functions with.
-   **/
+   * @returns An Effect that yields the scheduled function's ID.
+   */
   runAfter<FuncRef extends SchedulableFunctionReference>(
     delayMs: number,
     functionReference: FuncRef,
@@ -54,7 +58,8 @@ export class Scheduler {
    * @param functionReference - A {@link FunctionReference} for the function
    * to schedule.
    * @param args - arguments to call the scheduled functions with.
-   **/
+   * @returns An Effect that yields the scheduled function's ID.
+   */
   runAt<FuncRef extends SchedulableFunctionReference>(
     timestamp: number | Date,
     functionReference: FuncRef,
@@ -68,7 +73,8 @@ export class Scheduler {
    * scheduled function is already in progress, it will continue running but
    * any new functions that it tries to schedule will be canceled.
    *
-   * @param id
+   * @param id - The ID of the scheduled function to cancel.
+   * @returns An Effect that completes when the cancellation is processed.
    */
   cancel(id: GenericId<"_scheduled_functions">): E.Effect<void, never, never> {
     return E.promise(async () => this.convexScheduler.cancel(id))
