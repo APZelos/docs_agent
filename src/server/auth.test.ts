@@ -3,37 +3,28 @@ import type {UserIdentity} from "convex/server"
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {Effect as E, Option} from "effect"
 
-import {Auth} from "./auth"
+import {mockAuth} from "src/test/mock"
 
 describe("Auth", () => {
   describe("getUserIdentity", () => {
     test("shoud have correct type signature", () => {
-      const convexAuth = {
-        getUserIdentity: vi.fn().mockResolvedValue(null),
-      }
+      const auth = mockAuth({getUserIdentity: vi.fn().mockResolvedValue(null)})
+      const actual = auth.getUserIdentity()
 
-      const auth = new Auth(convexAuth)
-
-      const effect = auth.getUserIdentity()
-
-      expectTypeOf(effect).toEqualTypeOf<E.Effect<Option.Option<UserIdentity>, never, never>>()
+      expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<UserIdentity>, never, never>>()
     })
 
     it.effect("should return None when user is not authenticated", () =>
       E.gen(function* () {
-        const convexAuth = {
-          getUserIdentity: vi.fn().mockResolvedValue(null),
-        }
+        const auth = mockAuth({getUserIdentity: vi.fn().mockResolvedValue(null)})
+        const actual = yield* auth.getUserIdentity()
 
-        const auth = new Auth(convexAuth)
-        const result = yield* auth.getUserIdentity()
-
-        expectTypeOf<Option.Option<UserIdentity>>(result)
-        expect(result).toEqual(Option.none())
+        expectTypeOf<Option.Option<UserIdentity>>(actual)
+        expect(actual).toEqual(Option.none())
       }),
     )
 
-    it.effect("should return Some(userIdentity) when user is authenticated", () =>
+    it.effect("should return Some(UserIdentity) when user is authenticated", () =>
       E.gen(function* () {
         const identity: UserIdentity = {
           tokenIdentifier: "test-token",
@@ -49,15 +40,11 @@ describe("Auth", () => {
           custom: {},
         }
 
-        const convexAuth = {
-          getUserIdentity: vi.fn().mockResolvedValue(identity),
-        }
+        const auth = mockAuth({getUserIdentity: vi.fn().mockResolvedValue(identity)})
+        const actual = yield* auth.getUserIdentity()
 
-        const auth = new Auth(convexAuth)
-        const result = yield* auth.getUserIdentity()
-
-        expectTypeOf<Option.Option<UserIdentity>>(result)
-        expect(result).toEqual(Option.some(identity))
+        expectTypeOf<Option.Option<UserIdentity>>(actual)
+        expect(actual).toEqual(Option.some(identity))
       }),
     )
   })
