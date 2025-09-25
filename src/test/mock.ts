@@ -1,6 +1,5 @@
 import type {
   Auth as ConvexAuth,
-  DocumentByInfo as ConvexDocumentByInfo,
   GenericDatabaseReader as ConvexGenericDatabaseReader,
   GenericDatabaseWriter as ConvexGenericDatabaseWriter,
   OrderedQuery as ConvexOrderedQuery,
@@ -152,8 +151,14 @@ export function mockConvexQuery<TableInfo extends GenericTableInfo>(
   mock: Partial<ConvexQuery<TableInfo>> = {},
 ): ConvexQuery<TableInfo> {
   return {
-    ...mockConvexOrderedQuery<TableInfo>(),
+    filter: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    paginate: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    collect: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    take: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    first: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    unique: vi.fn().mockRejectedValue(new MockNotImplementedError()),
     order: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    [Symbol.asyncIterator]: vi.fn().mockRejectedValue(new MockNotImplementedError()),
     ...mock,
   }
 }
