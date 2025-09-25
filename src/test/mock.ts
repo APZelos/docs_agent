@@ -1,7 +1,11 @@
 import type {
   Auth as ConvexAuth,
+  DocumentByInfo as ConvexDocumentByInfo,
   GenericDatabaseReader as ConvexGenericDatabaseReader,
   GenericDatabaseWriter as ConvexGenericDatabaseWriter,
+  OrderedQuery as ConvexOrderedQuery,
+  PaginationResult as ConvexPaginationResult,
+  Query as ConvexQuery,
   QueryInitializer as ConvexQueryInitializer,
   GenericDataModel,
   GenericTableInfo,
@@ -10,7 +14,14 @@ import type {GenericId} from "convex/values"
 
 import {vi} from "@effect/vitest"
 
-import {Auth, GenericDatabaseReader, GenericDatabaseWriter, QueryInitializer} from "@server"
+import {
+  Auth,
+  GenericDatabaseReader,
+  GenericDatabaseWriter,
+  OrderedQuery,
+  Query,
+  QueryInitializer,
+} from "@server"
 
 export class MockNotImplementedError extends Error {
   constructor() {
@@ -103,4 +114,52 @@ export function mockGenericDatabaseWriter<DataModel extends GenericDataModel>(
   mock: Partial<ConvexGenericDatabaseWriter<DataModel>> = {},
 ): GenericDatabaseWriter<DataModel> {
   return new GenericDatabaseWriter(mockConvexGenericDatabaseWriter<DataModel>(mock))
+}
+
+export function mockConvexPaginationResult<Doc>(
+  mock: Partial<ConvexPaginationResult<Doc>> = {},
+): ConvexPaginationResult<Doc> {
+  return {
+    page: [],
+    isDone: true,
+    continueCursor: "",
+    ...mock,
+  }
+}
+
+export function mockConvexOrderedQuery<TableInfo extends GenericTableInfo>(
+  mock: Partial<ConvexOrderedQuery<TableInfo>> = {},
+): ConvexOrderedQuery<TableInfo> {
+  return {
+    filter: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    paginate: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    collect: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    take: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    first: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    unique: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    [Symbol.asyncIterator]: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockOrderedQuery<TableInfo extends GenericTableInfo>(
+  mock: Partial<ConvexOrderedQuery<TableInfo>> = {},
+): OrderedQuery<TableInfo> {
+  return new OrderedQuery(mockConvexOrderedQuery<TableInfo>(mock))
+}
+
+export function mockConvexQuery<TableInfo extends GenericTableInfo>(
+  mock: Partial<ConvexQuery<TableInfo>> = {},
+): ConvexQuery<TableInfo> {
+  return {
+    ...mockConvexOrderedQuery<TableInfo>(),
+    order: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockQuery<TableInfo extends GenericTableInfo>(
+  mock: Partial<ConvexQuery<TableInfo>> = {},
+): Query<TableInfo> {
+  return new Query(mockConvexQuery<TableInfo>(mock))
 }
