@@ -36,6 +36,7 @@
     /* Path(s) */
     "baseUrl": ".",
     "paths": {
+      "@lib": ["./src/lib"],
       "@server": ["./src/server"]
     }
   },
