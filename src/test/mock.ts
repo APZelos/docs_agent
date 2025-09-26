@@ -7,6 +7,9 @@ import type {
   Query as ConvexQuery,
   QueryInitializer as ConvexQueryInitializer,
   Scheduler as ConvexScheduler,
+  StorageActionWriter as ConvexStorageActionWriter,
+  StorageReader as ConvexStorageReader,
+  StorageWriter as ConvexStorageWriter,
   DefaultFunctionArgs,
   FunctionReference,
   FunctionType,
@@ -26,6 +29,9 @@ import {
   Query,
   QueryInitializer,
   Scheduler,
+  StorageActionWriter,
+  StorageReader,
+  StorageWriter,
 } from "@server"
 
 export class MockNotImplementedError extends Error {
@@ -196,4 +202,54 @@ export function mockConvexScheduler(mock: Partial<ConvexScheduler> = {}): Convex
 
 export function mockScheduler(mock: Partial<ConvexScheduler> = {}): Scheduler {
   return new Scheduler(mockConvexScheduler(mock))
+}
+
+export function mockConvexStorageReader(
+  mock: Partial<ConvexStorageReader> = {},
+): ConvexStorageReader {
+  return {
+    getUrl: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    getMetadata: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockStorageReader(mock: Partial<ConvexStorageReader> = {}): StorageReader {
+  return new StorageReader(mockConvexStorageReader(mock))
+}
+
+export function mockConvexStorageWriter(
+  mock: Partial<ConvexStorageWriter> = {},
+): ConvexStorageWriter {
+  return {
+    getUrl: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    getMetadata: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    generateUploadUrl: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    delete: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockStorageWriter(mock: Partial<ConvexStorageWriter> = {}): StorageWriter {
+  return new StorageWriter(mockConvexStorageWriter(mock))
+}
+
+export function mockConvexStorageActionWriter(
+  mock: Partial<ConvexStorageActionWriter> = {},
+): ConvexStorageActionWriter {
+  return {
+    getUrl: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    getMetadata: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    generateUploadUrl: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    delete: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    get: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    store: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockStorageActionWriter(
+  mock: Partial<ConvexStorageActionWriter> = {},
+): StorageActionWriter {
+  return new StorageActionWriter(mockConvexStorageActionWriter(mock))
 }
