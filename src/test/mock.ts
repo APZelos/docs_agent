@@ -6,6 +6,11 @@ import type {
   PaginationResult as ConvexPaginationResult,
   Query as ConvexQuery,
   QueryInitializer as ConvexQueryInitializer,
+  Scheduler as ConvexScheduler,
+  DefaultFunctionArgs,
+  FunctionReference,
+  FunctionType,
+  FunctionVisibility,
   GenericDataModel,
   GenericTableInfo,
 } from "convex/server"
@@ -20,6 +25,7 @@ import {
   OrderedQuery,
   Query,
   QueryInitializer,
+  Scheduler,
 } from "@server"
 
 export class MockNotImplementedError extends Error {
@@ -33,6 +39,16 @@ export function mockGenericId<TableName extends string>(
   id: string,
 ): GenericId<TableName> {
   return id as GenericId<TableName>
+}
+
+export function mockFunctionReference<
+  Type extends FunctionType,
+  Visibility extends FunctionVisibility = "public",
+  Args extends DefaultFunctionArgs = any,
+  ReturnType = any,
+  ComponentPath = string | undefined,
+>(): FunctionReference<Type, Visibility, Args, ReturnType, ComponentPath> {
+  return {} as FunctionReference<Type, Visibility, Args, ReturnType, ComponentPath>
 }
 
 export function mockConvexAuth(mock: Partial<ConvexAuth> = {}): ConvexAuth {
@@ -167,4 +183,17 @@ export function mockQuery<TableInfo extends GenericTableInfo>(
   mock: Partial<ConvexQuery<TableInfo>> = {},
 ): Query<TableInfo> {
   return new Query(mockConvexQuery<TableInfo>(mock))
+}
+
+export function mockConvexScheduler(mock: Partial<ConvexScheduler> = {}): ConvexScheduler {
+  return {
+    runAfter: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    runAt: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    cancel: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockScheduler(mock: Partial<ConvexScheduler> = {}): Scheduler {
+  return new Scheduler(mockConvexScheduler(mock))
 }
