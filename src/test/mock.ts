@@ -1,7 +1,10 @@
 import type {
   Auth as ConvexAuth,
+  GenericActionCtx as ConvexGenericActionCtx,
   GenericDatabaseReader as ConvexGenericDatabaseReader,
   GenericDatabaseWriter as ConvexGenericDatabaseWriter,
+  GenericMutationCtx as ConvexGenericMutationCtx,
+  GenericQueryCtx as ConvexGenericQueryCtx,
   OrderedQuery as ConvexOrderedQuery,
   PaginationResult as ConvexPaginationResult,
   Query as ConvexQuery,
@@ -23,8 +26,11 @@ import {vi} from "@effect/vitest"
 
 import {
   Auth,
+  GenericActionCtx,
   GenericDatabaseReader,
   GenericDatabaseWriter,
+  GenericMutationCtx,
+  GenericQueryCtx,
   OrderedQuery,
   Query,
   QueryInitializer,
@@ -252,4 +258,63 @@ export function mockStorageActionWriter(
   mock: Partial<ConvexStorageActionWriter> = {},
 ): StorageActionWriter {
   return new StorageActionWriter(mockConvexStorageActionWriter(mock))
+}
+
+export function mockConvexGenericQueryCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericQueryCtx<DataModel>> = {},
+): ConvexGenericQueryCtx<DataModel> {
+  return {
+    auth: mockConvexAuth(),
+    db: mockConvexGenericDatabaseReader<DataModel>(),
+    storage: mockConvexStorageReader(),
+    runQuery: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockGenericQueryCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericQueryCtx<DataModel>> = {},
+): GenericQueryCtx<DataModel> {
+  return new GenericQueryCtx(mockConvexGenericQueryCtx<DataModel>(mock))
+}
+
+export function mockConvexGenericMutationCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericMutationCtx<DataModel>> = {},
+): ConvexGenericMutationCtx<DataModel> {
+  return {
+    auth: mockConvexAuth(),
+    db: mockConvexGenericDatabaseWriter<DataModel>(),
+    storage: mockConvexStorageWriter(),
+    scheduler: mockConvexScheduler(),
+    runQuery: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    runMutation: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockGenericMutationCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericMutationCtx<DataModel>> = {},
+): GenericMutationCtx<DataModel> {
+  return new GenericMutationCtx(mockConvexGenericMutationCtx<DataModel>(mock))
+}
+
+export function mockConvexGenericActionCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericActionCtx<DataModel>> = {},
+): ConvexGenericActionCtx<DataModel> {
+  return {
+    auth: mockConvexAuth(),
+    storage: mockConvexStorageActionWriter(),
+    scheduler: mockConvexScheduler(),
+    runQuery: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    runMutation: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    runAction: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    vectorSearch: vi.fn().mockRejectedValue(new MockNotImplementedError()),
+    ...mock,
+  }
+}
+
+export function mockGenericActionCtx<DataModel extends GenericDataModel>(
+  mock: Partial<ConvexGenericActionCtx<DataModel>> = {},
+): GenericActionCtx<DataModel> {
+  return new GenericActionCtx(mockConvexGenericActionCtx<DataModel>(mock))
 }
