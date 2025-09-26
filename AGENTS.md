@@ -71,18 +71,24 @@
 
 ### Test Structure Patterns
 
-- **File naming**: `*.test.ts` files alongside source code (e.g., `auth.test.ts`, `database.test.ts`)
+- **File naming**: `*.test.ts` files alongside source code (e.g., `auth.test.ts`, `database.test.ts`, `storage.test.ts`)
 - **Test organization**: Use `describe()` for grouping by class/module, nested `describe()` for methods
+- **Inheritance testing**: For classes that extend others, structure tests as:
+  1. Class-specific methods first (new functionality)
+  2. `describe("extends ParentClass", () => { ... })` block after class-specific tests
+  3. Inherited method tests within the extends block
 - **Test types**:
   - `test()` for pure type signature validation with `expectTypeOf()` (no Effect yielding)
   - `it.effect()` for Effect-based tests that use `yield*` with `E.gen()` generator syntax
 
 ### Mock Patterns
 
-- **Mock utilities**: All mocks in `src/test/mock.ts` with consistent naming (`mockAuth`, `mockGenericDatabaseReader`)
+- **Mock utilities**: All mocks in `src/test/mock.ts` with consistent naming (`mockAuth`, `mockStorageReader`)
 - **Mock implementation**: Use `vi.fn().mockRejectedValue(new MockNotImplementedError())` as default
 - **Partial mocking**: Accept `Partial<T>` parameter to override specific methods
 - **Mock data**: Use `mockGenericId()` helper for type-safe ID generation
+- **Mock inheritance**: Create separate mock functions for each class in inheritance hierarchy
+- **Complete interfaces**: Ensure all required interface methods are mocked (including deprecated ones like `getMetadata`)
 
 ### Effect Testing Conventions
 
@@ -92,6 +98,27 @@
 - **Runtime assertions**: Use `expectTypeOf<T>(actual)` for runtime type verification in `it.effect()` tests
 - **Error testing**: Use `E.flip` to test error cases (e.g., `yield* operation.pipe(E.flip)`)
 - **Option testing**: Test both `Option.none()` and `Option.some(data)` cases explicitly
+- **Null handling**: Test operations that return `null` (like missing files/docs) and verify proper Error conversion
+
+### Test Organization Examples
+
+```typescript
+describe("StorageWriter", () => {
+  // Class-specific methods first
+  describe("generateUploadUrl", () => {
+    test("should have correct type signature", () => { ... })
+    it.effect("should return upload URL", () => { ... })
+  })
+
+  // Inherited methods after, grouped by parent class
+  describe("extends StorageReader", () => {
+    describe("getUrl", () => {
+      test("should have correct type signature", () => { ... })
+      it.effect("should return file URL when file exists", () => { ... })
+    })
+  })
+})
+```
 
 ### Schema and Type Setup
 
@@ -112,10 +139,14 @@ type Doc<TableName extends TableNames> = DocumentByName<DataModel, TableName>
 - **UserIdentity**: Complete mock objects with all required fields
 - **Documents**: Include `_id`, `_creationTime`, and all schema fields
 - **Database operations**: Mock return values match actual Convex types (`null` for missing docs, etc.)
+- **Storage operations**: Use proper Blob objects and storage IDs for file testing
+- **Function references**: Use `mockFunctionReference<Type, Visibility, Args>()` for scheduler testing
 
 ### Test Coverage Requirements
 
 - **Type signatures**: Always test return types with `expectTypeOf()` in `test()` blocks
 - **Happy path**: Test successful operations with valid data in `it.effect()` blocks
-- **Error cases**: Test failure scenarios (invalid IDs, missing docs) in `it.effect()` blocks
+- **Error cases**: Test failure scenarios (invalid IDs, missing docs/files) in `it.effect()` blocks
 - **Edge cases**: Test `null`/`None` returns and error conditions
+- **Inheritance verification**: Test that child classes properly implement parent class methods
+- **Method overloading**: Test all method signatures (e.g., with/without optional parameters)
