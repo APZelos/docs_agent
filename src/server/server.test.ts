@@ -4,13 +4,12 @@ import type {
   TableNamesInDataModel,
 } from "convex/server"
 import type {GenericId} from "convex/values"
-import type {ParseResult} from "effect"
 import type {GenericMutationCtx, GenericQueryCtx} from "./context"
 
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {defineSchema, defineTable} from "convex/server"
 import {v} from "convex/values"
-import {Effect as E, Option, Schema as S} from "effect"
+import {Effect as E, Option, ParseResult, Schema as S} from "effect"
 
 import {
   mockConvexGenericDatabaseReader,
@@ -43,7 +42,7 @@ const MutationCtx = createMutationCtx<DataModel>()
 const {model} = createFunctions<DataModel>({QueryCtx, MutationCtx})
 
 describe("model", () => {
-  const User = model("user", S.Struct({name: S.String, age: S.Number}))
+  const User = model("user", S.Struct({name: S.String, age: S.Number.pipe(S.positive())}))
   const doc: Doc<"user"> = {
     _id: mockGenericId("user", "user-id"),
     _creationTime: Date.now(),
@@ -95,6 +94,25 @@ describe("model", () => {
         ),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.getById(id).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Joe", age: -1}),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
   })
 
   describe("getByIdOrNull", () => {
@@ -137,6 +155,25 @@ describe("model", () => {
         ),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.getByIdOrNull(id).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Joe", age: -1}),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
   })
 
   describe("getByIdOrFail", () => {
@@ -179,6 +216,25 @@ describe("model", () => {
         ),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.getByIdOrFail(id).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Joe", age: -1}),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
   })
 
   describe("insert", () => {
@@ -206,55 +262,36 @@ describe("model", () => {
         ),
       ),
     )
+
+    it.effect("should return ParseError if value in not valid", () =>
+      E.gen(function* () {
+        const actual = yield* User.insert({name: "Joe", age: -1}).pipe(E.flip)
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
+      }).pipe(E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>())),
+    )
   })
 
   describe("insertAndGet", () => {
-    it.effect("should insert a document and return Some(Doc)", () =>
+    test("should have correct type signature", () => {
+      const actual = User.insertAndGet({name: "Joe", age: 22})
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<
+          S.Schema.Type<typeof User.Document>,
+          ParseResult.ParseError,
+          GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+        >
+      >()
+    })
+
+    it.effect("should insert a document and return it", () =>
       E.gen(function* () {
         const insertedId = mockGenericId("user", "new-user-id")
         const newDoc = {...doc, _id: insertedId}
         const actual = yield* User.insertAndGet({name: "Joe", age: 22})
-        expect(actual).toEqual(Option.some(newDoc))
-      }).pipe(
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              insert: vi.fn().mockResolvedValue(mockGenericId("user", "new-user-id")),
-              get: vi.fn().mockResolvedValue({...doc, _id: mockGenericId("user", "new-user-id")}),
-            }),
-          }),
-        ),
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, _id: mockGenericId("user", "new-user-id")}),
-            }),
-          }),
-        ),
-      ),
-    )
-  })
-
-  describe("insertAndGetOrNull", () => {
-    it.effect("should insert a document and return it", () =>
-      E.gen(function* () {
-        const insertedId = mockGenericId("user", "new-user-id")
-        const newDoc = {...doc, _id: insertedId}
-        const actual = yield* User.insertAndGetOrNull({name: "Joe", age: 22})
         expect(actual).toEqual(newDoc)
       }).pipe(
         E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              insert: vi.fn().mockResolvedValue(mockGenericId("user", "new-user-id")),
-              get: vi.fn().mockResolvedValue({...doc, _id: mockGenericId("user", "new-user-id")}),
-            }),
-          }),
-        ),
-        E.provideService(
           QueryCtx,
           mockGenericQueryCtx<DataModel>({
             db: mockConvexGenericDatabaseReader<DataModel>({
@@ -262,37 +299,79 @@ describe("model", () => {
             }),
           }),
         ),
+        E.provideService(
+          MutationCtx,
+          mockGenericMutationCtx<DataModel>({
+            db: mockConvexGenericDatabaseWriter<DataModel>({
+              insert: vi.fn().mockResolvedValue(mockGenericId("user", "new-user-id")),
+            }),
+          }),
+        ),
       ),
     )
-  })
 
-  describe("insertAndGetOrFail", () => {
-    it.effect("should insert a document and return it", () =>
+    it.effect("should return ParseError if value in not valid", () =>
       E.gen(function* () {
-        const insertedId = mockGenericId("user", "new-user-id")
-        const newDoc = {...doc, _id: insertedId}
-        const actual = yield* User.insertAndGetOrFail({name: "Joe", age: 22})
-        expect(actual).toEqual(newDoc)
+        const actual = yield* User.insertAndGet({name: "Joe", age: -1}).pipe(E.flip)
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
       }).pipe(
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              insert: vi.fn().mockResolvedValue(mockGenericId("user", "new-user-id")),
-              get: vi.fn().mockResolvedValue({...doc, _id: mockGenericId("user", "new-user-id")}),
-            }),
-          }),
-        ),
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, _id: mockGenericId("user", "new-user-id")}),
-            }),
-          }),
-        ),
+        E.provideService(QueryCtx, mockGenericQueryCtx<DataModel>()),
+        E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>()),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.insertAndGet({name: "Joe", age: 1}).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Joe", age: -1}),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                insert: vi.fn().mockResolvedValue(id),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
+
+    test("should die if cannot find inserted doc", async () => {
+      const insertedId = mockGenericId("user", "new-user-id")
+
+      await expect(async () =>
+        User.insertAndGet({name: "Joe", age: 22}).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi.fn().mockResolvedValue(null),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                insert: vi.fn().mockResolvedValue(insertedId),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(`Could not found inserted doc`)
+    })
   })
 
   describe("patchById", () => {
@@ -318,42 +397,34 @@ describe("model", () => {
         ),
       ),
     )
+
+    it.effect("should return ParseError if value in not valid", () =>
+      E.gen(function* () {
+        const actual = yield* User.patchById(mockGenericId("user", "user-id"), {age: -1}).pipe(
+          E.flip,
+        )
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
+      }).pipe(E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>())),
+    )
   })
 
   describe("patchByIdAndGet", () => {
+    test("should have correct type signature", () => {
+      const actual = User.patchByIdAndGet(mockGenericId("user", "user-id"), {age: 23})
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<
+          S.Schema.Type<typeof User.Document>,
+          ParseResult.ParseError,
+          GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+        >
+      >()
+    })
+
     it.effect("should patch a document by id and return it", () =>
       E.gen(function* () {
         const patchedDoc = {...doc, age: 23}
         const actual = yield* User.patchByIdAndGet(mockGenericId("user", "user-id"), {age: 23})
-        expect(actual).toEqual(Option.some(patchedDoc))
-      }).pipe(
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, age: 23}),
-            }),
-          }),
-        ),
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              patch: vi.fn().mockResolvedValue(undefined),
-            }),
-          }),
-        ),
-      ),
-    )
-  })
-
-  describe("patchByIdAndGetOrNull", () => {
-    it.effect("should patch a document by id and return it or null", () =>
-      E.gen(function* () {
-        const patchedDoc = {...doc, age: 23}
-        const actual = yield* User.patchByIdAndGetOrNull(mockGenericId("user", "user-id"), {
-          age: 23,
-        })
         expect(actual).toEqual(patchedDoc)
       }).pipe(
         E.provideService(
@@ -374,35 +445,70 @@ describe("model", () => {
         ),
       ),
     )
-  })
 
-  describe("patchByIdAndGetOrFail", () => {
-    it.effect("should patch a document by id and return it or fail", () =>
+    it.effect("should return ParseError if value in not valid", () =>
       E.gen(function* () {
-        const patchedDoc = {...doc, age: 23}
-        const actual = yield* User.patchByIdAndGetOrFail(mockGenericId("user", "user-id"), {
-          age: 23,
-        })
-        expect(actual).toEqual(patchedDoc)
+        const actual = yield* User.patchByIdAndGet(mockGenericId("user", "user-id"), {
+          age: -1,
+        }).pipe(E.flip)
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
       }).pipe(
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, age: 23}),
-            }),
-          }),
-        ),
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              patch: vi.fn().mockResolvedValue(undefined),
-            }),
-          }),
-        ),
+        E.provideService(QueryCtx, mockGenericQueryCtx<DataModel>()),
+        E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>()),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.patchByIdAndGet(id, {age: 23}).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Joe", age: -1}),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                patch: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
+
+    test("should die if cannot find patched doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.patchByIdAndGet(id, {age: 23}).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi.fn().mockResolvedValue(null),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                patch: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(`Could not found patched doc: ${id}`)
+    })
   })
 
   describe("replaceById", () => {
@@ -428,9 +534,34 @@ describe("model", () => {
         ),
       ),
     )
+
+    it.effect("should return ParseError if value in not valid", () =>
+      E.gen(function* () {
+        const actual = yield* User.replaceById(mockGenericId("user", "user-id"), {
+          name: "Jane",
+          age: -1,
+        }).pipe(E.flip)
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
+      }).pipe(E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>())),
+    )
   })
 
   describe("replaceByIdAndGet", () => {
+    test("should have correct type signature", () => {
+      const actual = User.replaceByIdAndGet(mockGenericId("user", "user-id"), {
+        name: "Jane",
+        age: 25,
+      })
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<
+          S.Schema.Type<typeof User.Document>,
+          ParseResult.ParseError,
+          GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+        >
+      >()
+    })
+
     it.effect("should replace a document by id and return it", () =>
       E.gen(function* () {
         const replacedDoc = {...doc, name: "Jane", age: 25}
@@ -438,36 +569,6 @@ describe("model", () => {
           name: "Jane",
           age: 25,
         })
-        expect(actual).toEqual(Option.some(replacedDoc))
-      }).pipe(
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, name: "Jane", age: 25}),
-            }),
-          }),
-        ),
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              replace: vi.fn().mockResolvedValue(undefined),
-            }),
-          }),
-        ),
-      ),
-    )
-  })
-
-  describe("replaceByIdAndGetOrNull", () => {
-    it.effect("should replace a document by id and return it or null", () =>
-      E.gen(function* () {
-        const replacedDoc = {...doc, name: "Jane", age: 25}
-        const actual = yield* User.replaceByIdAndGetOrNull(mockGenericId("user", "user-id"), {
-          name: "Jane",
-          age: 25,
-        })
         expect(actual).toEqual(replacedDoc)
       }).pipe(
         E.provideService(
@@ -488,36 +589,74 @@ describe("model", () => {
         ),
       ),
     )
-  })
 
-  describe("replaceByIdAndGetOrFail", () => {
-    it.effect("should replace a document by id and return it or fail", () =>
+    it.effect("should return ParseError if value in not valid", () =>
       E.gen(function* () {
-        const replacedDoc = {...doc, name: "Jane", age: 25}
-        const actual = yield* User.replaceByIdAndGetOrFail(mockGenericId("user", "user-id"), {
+        const actual = yield* User.replaceByIdAndGet(mockGenericId("user", "user-id"), {
           name: "Jane",
-          age: 25,
-        })
-        expect(actual).toEqual(replacedDoc)
+          age: -1,
+        }).pipe(E.flip)
+        expect(actual).toBeInstanceOf(ParseResult.ParseError)
       }).pipe(
-        E.provideService(
-          QueryCtx,
-          mockGenericQueryCtx<DataModel>({
-            db: mockConvexGenericDatabaseReader<DataModel>({
-              get: vi.fn().mockResolvedValue({...doc, name: "Jane", age: 25}),
-            }),
-          }),
-        ),
-        E.provideService(
-          MutationCtx,
-          mockGenericMutationCtx<DataModel>({
-            db: mockConvexGenericDatabaseWriter<DataModel>({
-              replace: vi.fn().mockResolvedValue(undefined),
-            }),
-          }),
-        ),
+        E.provideService(QueryCtx, mockGenericQueryCtx<DataModel>()),
+        E.provideService(MutationCtx, mockGenericMutationCtx<DataModel>()),
       ),
     )
+
+    test("should die if cannot decode doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.replaceByIdAndGet(id, {name: "Jane", age: 25}).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi
+                  .fn()
+                  .mockResolvedValue({_id: id, _creationTime: Date.now(), name: "Jane", age: -1}),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                replace: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(/userDocument|age/)
+    })
+
+    test("should die if cannot find replaced doc", async () => {
+      const id = mockGenericId("user", "user-id")
+      await expect(async () =>
+        User.replaceByIdAndGet(mockGenericId("user", "user-id"), {
+          name: "Jane",
+          age: 25,
+        }).pipe(
+          E.provideService(
+            QueryCtx,
+            mockGenericQueryCtx<DataModel>({
+              db: mockConvexGenericDatabaseReader<DataModel>({
+                get: vi.fn().mockResolvedValue(null),
+              }),
+            }),
+          ),
+          E.provideService(
+            MutationCtx,
+            mockGenericMutationCtx<DataModel>({
+              db: mockConvexGenericDatabaseWriter<DataModel>({
+                replace: vi.fn().mockResolvedValue(undefined),
+              }),
+            }),
+          ),
+          E.runPromise,
+        ),
+      ).rejects.toThrowError(`Could not found replaced doc: ${id}`)
+    })
   })
 
   describe("deleteById", () => {

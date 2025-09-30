@@ -509,15 +509,11 @@ export function createFunctions<DataModel extends GenericDataModel>({
     })
 
     const insertAndGet = E.fn(function* (value: DocumentWithoutSystemFields) {
-      return yield* pipe(insert(value), E.flatMap(getById))
-    })
-
-    const insertAndGetOrNull = E.fn(function* (value: DocumentWithoutSystemFields) {
-      return yield* pipe(insert(value), E.flatMap(getByIdOrNull))
-    })
-
-    const insertAndGetOrFail = E.fn(function* (value: DocumentWithoutSystemFields) {
-      return yield* pipe(insert(value), E.flatMap(getByIdOrFail))
+      const docId = yield* insert(value)
+      return yield* pipe(
+        getByIdOrFail(docId),
+        E.orDieWith((error) => new Error("Could not found inserted doc", {cause: error})),
+      )
     })
 
     const patchById = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
@@ -527,23 +523,10 @@ export function createFunctions<DataModel extends GenericDataModel>({
 
     const patchByIdAndGet = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
       yield* patchById(docId, value)
-      return yield* getById(docId)
-    })
-
-    const patchByIdAndGetOrNull = E.fn(function* (
-      docId: GenericId<TableName>,
-      value: PartialDocument,
-    ) {
-      yield* patchById(docId, value)
-      return yield* getByIdOrNull(docId)
-    })
-
-    const patchByIdAndGetOrFail = E.fn(function* (
-      docId: GenericId<TableName>,
-      value: PartialDocument,
-    ) {
-      yield* patchById(docId, value)
-      return yield* getByIdOrFail(docId)
+      return yield* pipe(
+        getByIdOrFail(docId),
+        E.orDieWith((error) => new Error(`Could not found patched doc: ${docId}`, {cause: error})),
+      )
     })
 
     const replaceById = E.fn(function* (
@@ -559,23 +542,10 @@ export function createFunctions<DataModel extends GenericDataModel>({
       value: DocumentWithOptionalSystemFields,
     ) {
       yield* replaceById(docId, value)
-      return yield* getById(docId)
-    })
-
-    const replaceByIdAndGetOrNull = E.fn(function* (
-      docId: GenericId<TableName>,
-      value: DocumentWithOptionalSystemFields,
-    ) {
-      yield* replaceById(docId, value)
-      return yield* getByIdOrNull(docId)
-    })
-
-    const replaceByIdAndGetOrFail = E.fn(function* (
-      docId: GenericId<TableName>,
-      value: DocumentWithOptionalSystemFields,
-    ) {
-      yield* replaceById(docId, value)
-      return yield* getByIdOrFail(docId)
+      return yield* pipe(
+        getByIdOrFail(docId),
+        E.orDieWith((error) => new Error(`Could not found replaced doc: ${docId}`, {cause: error})),
+      )
     })
 
     const deleteById = E.fn(function* (docId: GenericId<TableName>) {
@@ -593,16 +563,10 @@ export function createFunctions<DataModel extends GenericDataModel>({
       getByIdOrFail,
       insert,
       insertAndGet,
-      insertAndGetOrNull,
-      insertAndGetOrFail,
       patchById,
       patchByIdAndGet,
-      patchByIdAndGetOrNull,
-      patchByIdAndGetOrFail,
       replaceById,
       replaceByIdAndGet,
-      replaceByIdAndGetOrNull,
-      replaceByIdAndGetOrFail,
       deleteById,
     }
   }
