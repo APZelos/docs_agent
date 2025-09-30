@@ -55,18 +55,14 @@ describe("model", () => {
       const actual = User.getById(mockGenericId("user", "user-id"))
 
       expectTypeOf(actual).toEqualTypeOf<
-        E.Effect<
-          Option.Option<S.Schema.Type<typeof User.Document>>,
-          never,
-          GenericQueryCtx<DataModel>
-        >
+        E.Effect<S.Schema.Type<typeof User.Document>, DocNotFoundError, GenericQueryCtx<DataModel>>
       >()
     })
 
-    it.effect("should return None when there is no doc for the provided id", () =>
+    it.effect("should fail with DocNotFoundError when there is no doc for the provided id", () =>
       E.gen(function* () {
-        const actual = yield* User.getById(mockGenericId("user", "user-id"))
-        expect(actual).toEqual(Option.none())
+        const actual = yield* User.getById(mockGenericId("user", "user-id")).pipe(E.flip)
+        expect(actual).toBeInstanceOf(DocNotFoundError)
       }).pipe(
         E.provideService(
           QueryCtx,
@@ -79,10 +75,10 @@ describe("model", () => {
       ),
     )
 
-    it.effect("should return Some(Doc) when there is a doc for the provided id", () =>
+    it.effect("should return Doc when there is a doc for the provided id", () =>
       E.gen(function* () {
         const actual = yield* User.getById(mockGenericId("user", "user-id"))
-        expect(actual).toEqual(Option.some(doc))
+        expect(actual).toEqual(doc)
       }).pipe(
         E.provideService(
           QueryCtx,
@@ -115,9 +111,9 @@ describe("model", () => {
     })
   })
 
-  describe("getByIdOrNull", () => {
+  describe("getByIdNullable", () => {
     test("should have correct type signature", () => {
-      const actual = User.getByIdOrNull(mockGenericId("user", "user-id"))
+      const actual = User.getByIdNullable(mockGenericId("user", "user-id"))
 
       expectTypeOf(actual).toEqualTypeOf<
         E.Effect<S.Schema.Type<typeof User.Document> | null, never, GenericQueryCtx<DataModel>>
@@ -126,7 +122,7 @@ describe("model", () => {
 
     it.effect("should return null when there is no doc for the provided id", () =>
       E.gen(function* () {
-        const actual = yield* User.getByIdOrNull(mockGenericId("user", "user-id"))
+        const actual = yield* User.getByIdNullable(mockGenericId("user", "user-id"))
         expect(actual).toBeNull()
       }).pipe(
         E.provideService(
@@ -142,7 +138,7 @@ describe("model", () => {
 
     it.effect("should return Doc when there is a doc for the provided id", () =>
       E.gen(function* () {
-        const actual = yield* User.getByIdOrNull(mockGenericId("user", "user-id"))
+        const actual = yield* User.getByIdNullable(mockGenericId("user", "user-id"))
         expect(actual).toEqual(doc)
       }).pipe(
         E.provideService(
@@ -159,7 +155,7 @@ describe("model", () => {
     test("should die if cannot decode doc", async () => {
       const id = mockGenericId("user", "user-id")
       await expect(async () =>
-        User.getByIdOrNull(id).pipe(
+        User.getByIdNullable(id).pipe(
           E.provideService(
             QueryCtx,
             mockGenericQueryCtx<DataModel>({
@@ -176,19 +172,23 @@ describe("model", () => {
     })
   })
 
-  describe("getByIdOrFail", () => {
+  describe("getByIdOption", () => {
     test("should have correct type signature", () => {
-      const actual = User.getByIdOrFail(mockGenericId("user", "user-id"))
+      const actual = User.getByIdOption(mockGenericId("user", "user-id"))
 
       expectTypeOf(actual).toEqualTypeOf<
-        E.Effect<S.Schema.Type<typeof User.Document>, DocNotFoundError, GenericQueryCtx<DataModel>>
+        E.Effect<
+          Option.Option<S.Schema.Type<typeof User.Document>>,
+          never,
+          GenericQueryCtx<DataModel>
+        >
       >()
     })
 
-    it.effect("should fail with DocNotFoundError when there is no doc for the provided id", () =>
+    it.effect("should return None when there is no doc for the provided id", () =>
       E.gen(function* () {
-        const actual = yield* User.getByIdOrFail(mockGenericId("user", "user-id")).pipe(E.flip)
-        expect(actual).toBeInstanceOf(DocNotFoundError)
+        const actual = yield* User.getByIdOption(mockGenericId("user", "user-id"))
+        expect(actual).toEqual(Option.none())
       }).pipe(
         E.provideService(
           QueryCtx,
@@ -201,10 +201,10 @@ describe("model", () => {
       ),
     )
 
-    it.effect("should return Doc when there is a doc for the provided id", () =>
+    it.effect("should return Some(Doc) when there is a doc for the provided id", () =>
       E.gen(function* () {
-        const actual = yield* User.getByIdOrFail(mockGenericId("user", "user-id"))
-        expect(actual).toEqual(doc)
+        const actual = yield* User.getByIdOption(mockGenericId("user", "user-id"))
+        expect(actual).toEqual(Option.some(doc))
       }).pipe(
         E.provideService(
           QueryCtx,
@@ -220,7 +220,7 @@ describe("model", () => {
     test("should die if cannot decode doc", async () => {
       const id = mockGenericId("user", "user-id")
       await expect(async () =>
-        User.getByIdOrFail(id).pipe(
+        User.getByIdOption(id).pipe(
           E.provideService(
             QueryCtx,
             mockGenericQueryCtx<DataModel>({

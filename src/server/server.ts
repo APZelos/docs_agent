@@ -489,18 +489,20 @@ export function createFunctions<DataModel extends GenericDataModel>({
 
     const getById = E.fn(function* (docId: GenericId<TableName>) {
       const {db} = yield* QueryCtx
-      return yield* pipe(db.get(docId), E.map(Option.map(S.decodeUnknownSync(Document))))
-    })
-
-    const getByIdOrNull = E.fn(function* (docId: GenericId<TableName>) {
-      return yield* pipe(getById(docId), E.map(Option.getOrNull))
-    })
-
-    const getByIdOrFail = E.fn(function* (docId: GenericId<TableName>) {
       return yield* pipe(
-        getById(docId),
+        db.get(docId),
         E.flatMap(OptionSuccedOrFail(() => new DocNotFoundError())),
+        E.map(S.decodeUnknownSync(Document)),
       )
+    })
+
+    const getByIdNullable = E.fn(function* (docId: GenericId<TableName>) {
+      return yield* pipe(getById(docId), E.match({onFailure: () => null, onSuccess: (doc) => doc}))
+    })
+
+    const getByIdOption = E.fn(function* (docId: GenericId<TableName>) {
+      const {db} = yield* QueryCtx
+      return yield* pipe(db.get(docId), E.map(Option.map(S.decodeUnknownSync(Document))))
     })
 
     const insert = E.fn(function* (value: DocumentWithoutSystemFields) {
@@ -511,7 +513,7 @@ export function createFunctions<DataModel extends GenericDataModel>({
     const insertAndGet = E.fn(function* (value: DocumentWithoutSystemFields) {
       const docId = yield* insert(value)
       return yield* pipe(
-        getByIdOrFail(docId),
+        getById(docId),
         E.orDieWith((error) => new Error("Could not found inserted doc", {cause: error})),
       )
     })
@@ -524,7 +526,7 @@ export function createFunctions<DataModel extends GenericDataModel>({
     const patchByIdAndGet = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
       yield* patchById(docId, value)
       return yield* pipe(
-        getByIdOrFail(docId),
+        getById(docId),
         E.orDieWith((error) => new Error(`Could not found patched doc: ${docId}`, {cause: error})),
       )
     })
@@ -543,7 +545,7 @@ export function createFunctions<DataModel extends GenericDataModel>({
     ) {
       yield* replaceById(docId, value)
       return yield* pipe(
-        getByIdOrFail(docId),
+        getById(docId),
         E.orDieWith((error) => new Error(`Could not found replaced doc: ${docId}`, {cause: error})),
       )
     })
@@ -559,8 +561,8 @@ export function createFunctions<DataModel extends GenericDataModel>({
       DocumentWithOptionalSystemFields,
       PartialDocument,
       getById,
-      getByIdOrNull,
-      getByIdOrFail,
+      getByIdNullable,
+      getByIdOption,
       insert,
       insertAndGet,
       patchById,
