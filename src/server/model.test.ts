@@ -20,7 +20,7 @@ import {
 } from "src/test/mock"
 import {createMutationCtx, createQueryCtx} from "./context"
 import {DocNotFoundError} from "./error"
-import {createFunctions} from "./server"
+import {createModelFunction} from "./model"
 
 const _schema = defineSchema({
   user: defineTable({
@@ -39,7 +39,7 @@ type Doc<TableName extends TableNames> = DocumentByName<DataModel, TableName>
 const QueryCtx = createQueryCtx<DataModel>()
 const MutationCtx = createMutationCtx<DataModel>()
 
-const {model} = createFunctions<DataModel>({QueryCtx, MutationCtx})
+const {model} = createModelFunction({QueryCtx, MutationCtx})
 
 describe("model", () => {
   const User = model("user", S.Struct({name: S.String, age: S.Number.pipe(S.positive())}))
