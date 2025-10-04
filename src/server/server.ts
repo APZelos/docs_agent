@@ -24,8 +24,6 @@ import {Effect as E, pipe} from "effect"
 
 import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} from "./context"
 
-export const ConvexTableName = Symbol.for("ConvexTableName")
-
 /**
  * Configuration arguments for creating Effect-based Convex functions.
  *
