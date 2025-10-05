@@ -1,4 +1,12 @@
 import type {
+  DocNotUniqueError,
+  MutationCtxTag,
+  OrderedQuery,
+  Query,
+  QueryCtxTag,
+  QueryInitializer,
+} from "@server"
+import type {
   DocumentByName,
   ExpressionOrValue,
   FilterBuilder,
@@ -18,14 +26,11 @@ import type {
   WithoutSystemFields,
 } from "convex/server"
 import type {GenericId} from "convex/values"
-import type {MutationCtxTag, QueryCtxTag} from "./context"
-import type {DocNotUniqueError} from "./error"
-import type {OrderedQuery, Query, QueryInitializer} from "./query"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
+import {DocNotFoundError} from "@server"
 import {OptionSuccedOrFail} from "src/lib/option"
-import {DocNotFoundError} from "./error"
 
 export const ConvexTableName = Symbol.for("ConvexTableName")
 

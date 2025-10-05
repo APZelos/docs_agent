@@ -24,6 +24,16 @@
         "types": "./dist/helpers/index.d.cts",
         "require": "./dist/helpers/index.cjs"
       }
+    },
+    "./model": {
+      "import": {
+        "types": "./dist/model/index.d.ts",
+        "import": "./dist/model/index.js"
+      },
+      "require": {
+        "types": "./dist/model/index.d.cts",
+        "require": "./dist/model/index.cjs"
+      }
     }
   },
   "scripts": {

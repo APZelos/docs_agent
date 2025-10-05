@@ -1,16 +1,17 @@
+import type {GenericMutationCtx, GenericQueryCtx} from "@server"
 import type {
   DataModelFromSchemaDefinition,
   DocumentByName,
   TableNamesInDataModel,
 } from "convex/server"
 import type {GenericId} from "convex/values"
-import type {GenericMutationCtx, GenericQueryCtx} from "./context"
 
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {defineSchema, defineTable} from "convex/server"
 import {v} from "convex/values"
 import {Effect as E, Option, ParseResult, Schema as S} from "effect"
 
+import {createMutationCtx, createQueryCtx, DocNotFoundError} from "@server"
 import {
   mockConvexGenericDatabaseReader,
   mockConvexGenericDatabaseWriter,
@@ -18,8 +19,6 @@ import {
   mockGenericMutationCtx,
   mockGenericQueryCtx,
 } from "src/test/mock"
-import {createMutationCtx, createQueryCtx} from "./context"
-import {DocNotFoundError} from "./error"
 import {createModelFunction} from "./model"
 
 const _schema = defineSchema({
