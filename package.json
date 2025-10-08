@@ -25,14 +25,14 @@
         "require": "./dist/helpers/filter.cjs"
       }
     },
-    "./filter": {
+    "./helpers/stream": {
       "import": {
-        "types": "./dist/helpers/filter.d.ts",
-        "import": "./dist/helpers/filter.js"
+        "types": "./dist/helpers/stream.d.ts",
+        "import": "./dist/helpers/stream.js"
       },
       "require": {
-        "types": "./dist/helpers/filter.d.cts",
-        "require": "./dist/helpers/filter.cjs"
+        "types": "./dist/helpers/stream.d.cts",
+        "require": "./dist/helpers/stream.cjs"
       }
     },
     "./model": {
