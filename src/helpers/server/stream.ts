@@ -11,11 +11,13 @@ import type {
   DataModelFromSchemaDefinition,
   DocumentByInfo,
   GenericDataModel,
+  GenericTableInfo,
   IndexNames,
   IndexRange,
   IndexRangeBuilder,
   NamedIndex,
   NamedTableInfo,
+  PaginationResult,
   SchemaDefinition,
   TableNamesInDataModel,
 } from "convex/server"
@@ -24,7 +26,7 @@ import {
   mergedStream as convexMergedStream,
   stream as convexStream,
 } from "convex-helpers/server/stream"
-import {Effect as E, pipe} from "effect"
+import {Effect as E, Option, pipe} from "effect"
 
 import {DocNotUniqueError} from "@server"
 
@@ -34,6 +36,128 @@ export function stream<Schema extends SchemaDefinition<any, boolean>>(
   schema: Schema,
 ) {
   return new StreamDatabaseReader(QueryCtx, queryCtx, convexStream(queryCtx.db.convexDb, schema))
+}
+
+export function withStreamIndex<
+  Schema extends SchemaDefinition<any, boolean>,
+  TableName extends TableNamesInDataModel<DataModelFromSchemaDefinition<Schema>>,
+  IndexName extends IndexNames<NamedTableInfo<DataModelFromSchemaDefinition<Schema>, TableName>>,
+>(
+  indexName: IndexName,
+  indexRange?: (
+    q: IndexRangeBuilder<
+      DocumentByInfo<NamedTableInfo<DataModelFromSchemaDefinition<Schema>, TableName>>,
+      NamedIndex<NamedTableInfo<DataModelFromSchemaDefinition<Schema>, TableName>, IndexName>
+    >,
+  ) => IndexRange,
+) {
+  return (
+    q: StreamQueryInitializer<Schema, TableName>,
+  ): StreamQuery<Schema, TableName, IndexName> => q.withIndex(indexName, indexRange)
+}
+
+export function filterStreamWith<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(
+  predicate: <TError = never>(
+    value: A,
+  ) => E.Effect<boolean, TError, GenericQueryCtx<DataModelFromSchemaDefinition<Schema>>>,
+) {
+  return (
+    q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+  ): QueryStream<DataModelFromSchemaDefinition<Schema>, A> => q.filterWith(predicate)
+}
+
+export function mapStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+  B extends GenericStreamItem,
+>(
+  mapper: <TError = never>(
+    value: A,
+  ) => E.Effect<B | null, TError, GenericQueryCtx<DataModelFromSchemaDefinition<Schema>>>,
+) {
+  return (
+    q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+  ): QueryStream<DataModelFromSchemaDefinition<Schema>, B> => q.map(mapper)
+}
+
+export function flatMapStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+  B extends GenericStreamItem,
+>(
+  mapper: <TError = never>(
+    value: A,
+  ) => E.Effect<
+    QueryStream<DataModelFromSchemaDefinition<Schema>, B>,
+    TError,
+    GenericQueryCtx<DataModelFromSchemaDefinition<Schema>>
+  >,
+  mappedIndexFields: string[],
+) {
+  return (
+    q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+  ): QueryStream<DataModelFromSchemaDefinition<Schema>, B> => q.flatMap(mapper, mappedIndexFields)
+}
+
+export function distinctStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(distinctIndexFields: string[]) {
+  return (
+    q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+  ): QueryStream<DataModelFromSchemaDefinition<Schema>, A> => q.distinct(distinctIndexFields)
+}
+
+export function orderStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  TableName extends TableNamesInDataModel<DataModelFromSchemaDefinition<Schema>>,
+>(order: "asc" | "desc") {
+  return (
+    q: StreamQueryInitializer<Schema, TableName>,
+  ): QueryStream<
+    DataModelFromSchemaDefinition<Schema>,
+    DocumentByInfo<NamedTableInfo<DataModelFromSchemaDefinition<Schema>, TableName>>
+  > => q.order(order)
+}
+
+export function paginateStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(paginationOpts: PaginationOptions) {
+  return (
+    q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+  ): E.Effect<PaginationResult<A>> => q.paginate(paginationOpts)
+}
+
+export function collectStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A[]> {
+  return q.collect()
+}
+
+export function takeFromStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(n: number) {
+  return (q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A[]> => q.take(n)
+}
+
+export function firstFromStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A | null> {
+  return q.first()
+}
+
+export function uniqueFromStream<
+  Schema extends SchemaDefinition<any, boolean>,
+  A extends GenericStreamItem,
+>(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A | null, DocNotUniqueError> {
+  return q.unique()
 }
 
 export function mergedStream<DataModel extends GenericDataModel, T extends GenericStreamItem>(
@@ -83,7 +207,7 @@ export class StreamDatabaseReader<Schema extends SchemaDefinition<any, boolean>>
 
 export type GenericStreamItem = NonNullable<unknown>
 
-interface PaginationOptions extends BasePaginationOptions {
+export interface PaginationOptions extends BasePaginationOptions {
   endCursor?: string | null
   maximumRowsRead?: number
 }
@@ -103,7 +227,9 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     this.convexStream = convexStream
   }
 
-  filterWith(predicate: (doc: T) => E.Effect<boolean, unknown, GenericQueryCtx<DataModel>>) {
+  filterWith(
+    predicate: <TError = never>(doc: T) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
+  ) {
     return new QueryStream(
       this.QueryCtx,
       this.queryCtx,
@@ -114,7 +240,7 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
   }
 
   map<U extends GenericStreamItem>(
-    mapper: (doc: T) => E.Effect<U | null, unknown, GenericQueryCtx<DataModel>>,
+    mapper: <TError = never>(doc: T) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
   ): QueryStream<DataModel, U> {
     return new QueryStream(
       this.QueryCtx,
@@ -126,7 +252,9 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
   }
 
   flatMap<U extends GenericStreamItem>(
-    mapper: (doc: T) => E.Effect<QueryStream<DataModel, U>, unknown, GenericQueryCtx<DataModel>>,
+    mapper: <TError = never>(
+      doc: T,
+    ) => E.Effect<QueryStream<DataModel, U>, TError, GenericQueryCtx<DataModel>>,
     mappedIndexFields: string[],
   ): QueryStream<DataModel, U> {
     return new QueryStream(

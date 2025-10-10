@@ -9,10 +9,10 @@ import type {
   QueryInitializer,
 } from "@server"
 import type {
+  DataModelFromSchemaDefinition,
   DocumentByName,
   ExpressionOrValue,
   FilterBuilder,
-  GenericDataModel,
   IndexNames,
   IndexRange,
   IndexRangeBuilder,
@@ -20,6 +20,7 @@ import type {
   NamedSearchIndex,
   NamedTableInfo,
   PaginationOptions,
+  SchemaDefinition,
   SearchFilter,
   SearchFilterBuilder,
   SearchIndexNames,
@@ -29,11 +30,19 @@ import type {
 } from "convex/server"
 import type {GenericId} from "convex/values"
 import type {ParseResult} from "effect"
+import type {
+  GenericStreamItem,
+  QueryStream,
+  PaginationOptions as StreamPaginationOptions,
+  StreamQuery,
+  StreamQueryInitializer,
+} from "../helpers/server/stream"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
 import {DocNotFoundError} from "@server"
 import {OptionSuccedOrFail} from "src/lib/option"
+import {stream as streamHelper} from "../helpers/server/stream"
 
 export const ConvexTableName = Symbol.for("ConvexTableName")
 
@@ -49,17 +58,20 @@ function PaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
   })
 }
 
-export interface CreateModleFunctionArgs<DataModel extends GenericDataModel> {
+export interface CreateModleFunctionArgs<Schema extends SchemaDefinition<any, boolean>> {
   /** Context tag for query operations */
-  QueryCtx: QueryCtxTag<DataModel>
+  QueryCtx: QueryCtxTag<DataModelFromSchemaDefinition<Schema>>
   /** Context tag for mutation operations */
-  MutationCtx: MutationCtxTag<DataModel>
+  MutationCtx: MutationCtxTag<DataModelFromSchemaDefinition<Schema>>
+  schema: Schema
 }
 
-export function createModelFunction<DataModel extends GenericDataModel>({
+export function createModelFunction<Schema extends SchemaDefinition<any, boolean>>({
   QueryCtx,
   MutationCtx,
-}: CreateModleFunctionArgs<DataModel>) {
+  schema,
+}: CreateModleFunctionArgs<Schema>) {
+  type DataModel = DataModelFromSchemaDefinition<Schema>
   type TableNames = TableNamesInDataModel<DataModel>
   type Doc<TableName extends TableNames> = DocumentByName<DataModel, TableName>
 
@@ -91,11 +103,11 @@ export function createModelFunction<DataModel extends GenericDataModel>({
 
   function model<TableName extends TableNamesInDataModel<DataModel>, A>(
     tableName: TableName,
-    schema: S.Schema<A, WithoutSystemFields<Doc<TableName>>>,
+    tableSchema: S.Schema<A, WithoutSystemFields<Doc<TableName>>>,
   ) {
     type TableInfo = NamedTableInfo<DataModel, TableName>
 
-    const DocumentWithoutSystemFields = schema.annotations({
+    const DocumentWithoutSystemFields = tableSchema.annotations({
       identifier: `${tableName}WithoutSystemFields`,
       title: `${tableName} without the system fields`,
       description:
@@ -105,7 +117,7 @@ export function createModelFunction<DataModel extends GenericDataModel>({
     type DocumentWithoutSystemFields = S.Schema.Type<typeof DocumentWithoutSystemFields>
 
     const DocumentWithOptionalSystemFields = S.extend(
-      schema,
+      tableSchema,
       OptionalSystemFields(tableName),
     ).annotations({
       identifier: `${tableName}WithOptionalSystemFields`,
@@ -122,7 +134,7 @@ export function createModelFunction<DataModel extends GenericDataModel>({
 
     type DocumentWithOptionalSystemFields = S.Schema.Type<typeof DocumentWithOptionalSystemFields>
 
-    const Document = S.extend(schema, SystemFields(tableName)).annotations({
+    const Document = S.extend(tableSchema, SystemFields(tableName)).annotations({
       identifier: `${tableName}Document`,
       title: `${tableName} document`,
       description: "A schema representing a Convex document",
@@ -150,6 +162,15 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       return db.query(tableName)
     })
 
+    const stream: E.Effect<
+      StreamQueryInitializer<Schema, TableName>,
+      never,
+      GenericQueryCtx<DataModel>
+    > = E.gen(function* () {
+      const queryCtx = yield* QueryCtx
+      return streamHelper(QueryCtx, queryCtx, schema).query(tableName)
+    })
+
     function fullTableScan(q: QueryInitializer<TableInfo>): Query<TableInfo> {
       return q.fullTableScan()
     }
@@ -162,6 +183,17 @@ export function createModelFunction<DataModel extends GenericDataModel>({
     ) {
       return (q: QueryInitializer<TableInfo>): Query<TableInfo> =>
         q.withIndex(indexName, indexRange)
+    }
+
+    function withStreamIndex<IndexName extends IndexNames<TableInfo>>(
+      indexName: IndexName,
+      indexRange?: (
+        q: IndexRangeBuilder<Doc<TableName>, NamedIndex<TableInfo, IndexName>>,
+      ) => IndexRange,
+    ) {
+      return (
+        q: StreamQueryInitializer<Schema, TableName>,
+      ): StreamQuery<Schema, TableName, IndexName> => q.withIndex(indexName, indexRange)
     }
 
     function withSearchIndex<IndexName extends SearchIndexNames<TableInfo>>(
@@ -179,12 +211,67 @@ export function createModelFunction<DataModel extends GenericDataModel>({
         q.filter(predicate) as any as Query
     }
 
+    function filterStreamWith(
+      predicate: <TError = never>(
+        doc: Document,
+      ) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
+    ) {
+      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, Doc<TableName>> =>
+        q.filterWith(
+          E.fn(function* (doc) {
+            const document = S.decodeSync(Document)(doc)
+            return yield* predicate(document)
+          }),
+        )
+    }
+
+    function mapStream<U extends GenericStreamItem>(
+      mapper: <TError = never>(
+        doc: Document,
+      ) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
+    ) {
+      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, U> =>
+        q.map(
+          E.fn(function* (doc) {
+            const document = S.decodeSync(Document)(doc)
+            return yield* mapper(document)
+          }),
+        )
+    }
+
+    function flatMapStream<U extends GenericStreamItem>(
+      mapper: <TError = never>(
+        doc: Document,
+      ) => E.Effect<QueryStream<DataModel, U>, TError, GenericQueryCtx<DataModel>>,
+      mappedIndexFields: string[],
+    ) {
+      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, U> =>
+        q.flatMap(
+          E.fn(function* (doc) {
+            const document = S.decodeSync(Document)(doc)
+            return yield* mapper(document)
+          }),
+          mappedIndexFields,
+        )
+    }
+
+    function distinctStream(distinctIndexFields: string[]) {
+      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, Doc<TableName>> =>
+        q.distinct(distinctIndexFields)
+    }
+
     function order(order: "asc" | "desc") {
-      return (q: Query<TableInfo>): OrderedQuery<TableInfo> => q.order(order)
+      return <Q extends OrderedQuery<TableInfo>>(q: {order: (order: "asc" | "desc") => Q}): Q =>
+        q.order(order)
     }
 
     function paginate(paginationOpts: PaginationOptions) {
       return (q: OrderedQuery<TableInfo>): E.Effect<DocumentPaginationResult> =>
+        pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
+    }
+
+    function paginateStream(paginationOpts: StreamPaginationOptions) {
+      return (q: QueryStream<DataModel, TableInfo>): E.Effect<DocumentPaginationResult> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
@@ -326,12 +413,19 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       DocumentWithOptionalSystemFields,
       PartialDocument,
       query,
+      stream,
       fullTableScan,
       withIndex,
+      withStreamIndex,
       withSearchIndex,
       filter,
+      filterStreamWith,
+      mapStream,
+      flatMapStream,
+      distinctStream,
       order,
       paginate,
+      paginateStream,
       collect,
       take,
       first,
