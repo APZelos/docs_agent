@@ -1,5 +1,7 @@
 import type {
   DocNotUniqueError,
+  GenericMutationCtx,
+  GenericQueryCtx,
   MutationCtxTag,
   OrderedQuery,
   Query,
@@ -26,6 +28,7 @@ import type {
   WithoutSystemFields,
 } from "convex/server"
 import type {GenericId} from "convex/values"
+import type {ParseResult} from "effect"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
@@ -204,7 +207,11 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       return pipe(q.unique(), E.map(Option.map(S.decodeSync(Document))))
     }
 
-    const getById = E.fn(function* (docId: GenericId<TableName>) {
+    const getById: (
+      docId: GenericId<TableName>,
+    ) => E.Effect<Document, DocNotFoundError, GenericQueryCtx<DataModel>> = E.fn(function* (
+      docId: GenericId<TableName>,
+    ) {
       const {db} = yield* QueryCtx
       return yield* pipe(
         db.get(docId),
@@ -213,21 +220,38 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       )
     })
 
-    const getByIdNullable = E.fn(function* (docId: GenericId<TableName>) {
+    const getByIdNullable: (
+      docId: GenericId<TableName>,
+    ) => E.Effect<Document | null, never, GenericQueryCtx<DataModel>> = E.fn(function* (
+      docId: GenericId<TableName>,
+    ) {
       return yield* pipe(getById(docId), E.match({onFailure: () => null, onSuccess: (doc) => doc}))
     })
 
-    const getByIdOption = E.fn(function* (docId: GenericId<TableName>) {
+    const getByIdOption: (
+      docId: GenericId<TableName>,
+    ) => E.Effect<Option.Option<Document>, never, GenericQueryCtx<DataModel>> = E.fn(function* (
+      docId: GenericId<TableName>,
+    ) {
       const {db} = yield* QueryCtx
       return yield* pipe(db.get(docId), E.map(Option.map(S.decodeUnknownSync(Document))))
     })
 
-    const insert = E.fn(function* (value: DocumentWithoutSystemFields) {
-      const {db} = yield* MutationCtx
-      return yield* db.insert(tableName, yield* S.encode(DocumentWithoutSystemFields)(value))
-    })
+    const insert: (
+      value: DocumentWithoutSystemFields,
+    ) => E.Effect<GenericId<TableName>, ParseResult.ParseError, GenericMutationCtx<DataModel>> =
+      E.fn(function* (value: DocumentWithoutSystemFields) {
+        const {db} = yield* MutationCtx
+        return yield* db.insert(tableName, yield* S.encode(DocumentWithoutSystemFields)(value))
+      })
 
-    const insertAndGet = E.fn(function* (value: DocumentWithoutSystemFields) {
+    const insertAndGet: (
+      value: DocumentWithoutSystemFields,
+    ) => E.Effect<
+      Document,
+      ParseResult.ParseError,
+      GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+    > = E.fn(function* (value: DocumentWithoutSystemFields) {
       const docId = yield* insert(value)
       return yield* pipe(
         getById(docId),
@@ -235,12 +259,25 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       )
     })
 
-    const patchById = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
+    const patchById: (
+      docId: GenericId<TableName>,
+      value: PartialDocument,
+    ) => E.Effect<void, ParseResult.ParseError, GenericMutationCtx<DataModel>> = E.fn(function* (
+      docId: GenericId<TableName>,
+      value: PartialDocument,
+    ) {
       const {db} = yield* MutationCtx
       return yield* db.patch(docId, yield* S.encode(PartialDocument)(value))
     })
 
-    const patchByIdAndGet = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
+    const patchByIdAndGet: (
+      docId: GenericId<TableName>,
+      value: PartialDocument,
+    ) => E.Effect<
+      Document,
+      ParseResult.ParseError,
+      GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+    > = E.fn(function* (docId: GenericId<TableName>, value: PartialDocument) {
       yield* patchById(docId, value)
       return yield* pipe(
         getById(docId),
@@ -248,7 +285,10 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       )
     })
 
-    const replaceById = E.fn(function* (
+    const replaceById: (
+      docId: GenericId<TableName>,
+      value: DocumentWithOptionalSystemFields,
+    ) => E.Effect<void, ParseResult.ParseError, GenericMutationCtx<DataModel>> = E.fn(function* (
       docId: GenericId<TableName>,
       value: DocumentWithOptionalSystemFields,
     ) {
@@ -256,10 +296,14 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       return yield* db.replace(docId, yield* S.encode(DocumentWithOptionalSystemFields)(value))
     })
 
-    const replaceByIdAndGet = E.fn(function* (
+    const replaceByIdAndGet: (
       docId: GenericId<TableName>,
       value: DocumentWithOptionalSystemFields,
-    ) {
+    ) => E.Effect<
+      Document,
+      ParseResult.ParseError,
+      GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+    > = E.fn(function* (docId: GenericId<TableName>, value: DocumentWithOptionalSystemFields) {
       yield* replaceById(docId, value)
       return yield* pipe(
         getById(docId),
@@ -267,7 +311,11 @@ export function createModelFunction<DataModel extends GenericDataModel>({
       )
     })
 
-    const deleteById = E.fn(function* (docId: GenericId<TableName>) {
+    const deleteById: (
+      docId: GenericId<TableName>,
+    ) => E.Effect<void, ParseResult.ParseError, GenericMutationCtx<DataModel>> = E.fn(function* (
+      docId: GenericId<TableName>,
+    ) {
       const {db} = yield* MutationCtx
       return yield* db.delete(docId)
     })
