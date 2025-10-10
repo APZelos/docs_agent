@@ -21,7 +21,7 @@ import {
 } from "src/test/mock"
 import {createModelFunction} from "./model"
 
-const _schema = defineSchema({
+const schema = defineSchema({
   user: defineTable({
     name: v.string(),
     age: v.number(),
@@ -30,7 +30,7 @@ const _schema = defineSchema({
     .searchIndex("by_name", {searchField: "name"}),
 })
 
-type DataModel = DataModelFromSchemaDefinition<typeof _schema>
+type DataModel = DataModelFromSchemaDefinition<typeof schema>
 type TableNames = TableNamesInDataModel<DataModel>
 type Id<TableName extends TableNames> = GenericId<TableName>
 type Doc<TableName extends TableNames> = DocumentByName<DataModel, TableName>
@@ -38,7 +38,7 @@ type Doc<TableName extends TableNames> = DocumentByName<DataModel, TableName>
 const QueryCtx = createQueryCtx<DataModel>()
 const MutationCtx = createMutationCtx<DataModel>()
 
-const {model} = createModelFunction({QueryCtx, MutationCtx})
+const {model} = createModelFunction({schema, QueryCtx, MutationCtx})
 
 describe("model", () => {
   const User = model("user", S.Struct({name: S.String, age: S.Number.pipe(S.positive())}))

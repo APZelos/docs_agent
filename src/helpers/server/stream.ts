@@ -11,7 +11,6 @@ import type {
   DataModelFromSchemaDefinition,
   DocumentByInfo,
   GenericDataModel,
-  GenericTableInfo,
   IndexNames,
   IndexRange,
   IndexRangeBuilder,
@@ -149,15 +148,17 @@ export function takeFromStream<
 export function firstFromStream<
   Schema extends SchemaDefinition<any, boolean>,
   A extends GenericStreamItem,
->(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A | null> {
-  return q.first()
+>(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<Option.Option<A>> {
+  return pipe(q.first(), E.map(Option.fromNullable))
 }
 
 export function uniqueFromStream<
   Schema extends SchemaDefinition<any, boolean>,
   A extends GenericStreamItem,
->(q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>): E.Effect<A | null, DocNotUniqueError> {
-  return q.unique()
+>(
+  q: QueryStream<DataModelFromSchemaDefinition<Schema>, A>,
+): E.Effect<Option.Option<A>, DocNotUniqueError> {
+  return pipe(q.unique(), E.map(Option.fromNullable))
 }
 
 export function mergedStream<DataModel extends GenericDataModel, T extends GenericStreamItem>(

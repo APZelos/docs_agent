@@ -285,13 +285,13 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     }
 
     function first(q: OrderedQuery<TableInfo>): E.Effect<Option.Option<Document>> {
-      return pipe(q.first(), E.map(Option.map(S.decodeSync(Document))))
+      return pipe(q.first(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
     function unique(
       q: OrderedQuery<TableInfo>,
     ): E.Effect<Option.Option<Document>, DocNotUniqueError> {
-      return pipe(q.unique(), E.map(Option.map(S.decodeSync(Document))))
+      return pipe(q.unique(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
     const getById: (
@@ -400,7 +400,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
 
     const deleteById: (
       docId: GenericId<TableName>,
-    ) => E.Effect<void, ParseResult.ParseError, GenericMutationCtx<DataModel>> = E.fn(function* (
+    ) => E.Effect<void, never, GenericMutationCtx<DataModel>> = E.fn(function* (
       docId: GenericId<TableName>,
     ) {
       const {db} = yield* MutationCtx

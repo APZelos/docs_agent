@@ -1,5 +1,4 @@
 import type {
-  DocumentByInfo as ConvexDocumentByInfo,
   PaginationResult as ConvexPaginationResult,
   DataModelFromSchemaDefinition,
   DocumentByName,
@@ -188,10 +187,10 @@ describe("OrderedQuery", () => {
       const orderedQuery = mockOrderedQuery<TableInfo<"user">>()
       const actual = orderedQuery.first()
 
-      expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<Doc<"user">>, never, never>>()
+      expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, never, never>>()
     })
 
-    it.effect("should return Some(Doc) when document exists", () =>
+    it.effect("should return Doc when document exists", () =>
       E.gen(function* () {
         const doc: Doc<"user"> = {
           _id: mockGenericId("user", "user-1"),
@@ -206,12 +205,12 @@ describe("OrderedQuery", () => {
 
         const actual = yield* orderedQuery.first()
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
-        expect(actual).toEqual(Option.some(doc))
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+        expect(actual).toEqual(doc)
       }),
     )
 
-    it.effect("should return None when no documents exist", () =>
+    it.effect("should return null when no documents exist", () =>
       E.gen(function* () {
         const orderedQuery = mockOrderedQuery<TableInfo<"user">>({
           first: vi.fn().mockResolvedValue(null),
@@ -219,8 +218,8 @@ describe("OrderedQuery", () => {
 
         const actual = yield* orderedQuery.first()
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>>()
-        expect(actual).toEqual(Option.none())
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+        expect(actual).toEqual(null)
       }),
     )
   })
@@ -230,12 +229,10 @@ describe("OrderedQuery", () => {
       const orderedQuery = mockOrderedQuery<TableInfo<"user">>()
       const actual = orderedQuery.unique()
 
-      expectTypeOf(actual).toEqualTypeOf<
-        E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>, DocNotUniqueError, never>
-      >()
+      expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, DocNotUniqueError, never>>()
     })
 
-    it.effect("should return Some(doc) for single document", () =>
+    it.effect("should return Doc for single document", () =>
       E.gen(function* () {
         const doc: Doc<"user"> = {
           _id: mockGenericId("user", "user-1"),
@@ -250,12 +247,12 @@ describe("OrderedQuery", () => {
 
         const actual = yield* orderedQuery.unique()
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>>()
-        expect(actual).toEqual(Option.some(doc))
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+        expect(actual).toEqual(doc)
       }),
     )
 
-    it.effect("should return None for no documents", () =>
+    it.effect("should return null for no documents", () =>
       E.gen(function* () {
         const orderedQuery = mockOrderedQuery<TableInfo<"user">>({
           take: vi.fn().mockResolvedValue([]),
@@ -263,8 +260,8 @@ describe("OrderedQuery", () => {
 
         const actual = yield* orderedQuery.unique()
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>>()
-        expect(actual).toEqual(Option.none())
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+        expect(actual).toEqual(null)
       }),
     )
 
@@ -490,10 +487,10 @@ describe("Query", () => {
         const orderedQuery = mockQuery<TableInfo<"user">>()
         const actual = orderedQuery.first()
 
-        expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<Doc<"user">>, never, never>>()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, never, never>>()
       })
 
-      it.effect("should return Some(Doc) when document exists", () =>
+      it.effect("should return Doc when document exists", () =>
         E.gen(function* () {
           const doc: Doc<"user"> = {
             _id: mockGenericId("user", "user-1"),
@@ -508,12 +505,12 @@ describe("Query", () => {
 
           const actual = yield* orderedQuery.first()
 
-          expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
-          expect(actual).toEqual(Option.some(doc))
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(doc)
         }),
       )
 
-      it.effect("should return None when no documents exist", () =>
+      it.effect("should return null when no documents exist", () =>
         E.gen(function* () {
           const orderedQuery = mockQuery<TableInfo<"user">>({
             first: vi.fn().mockResolvedValue(null),
@@ -521,10 +518,8 @@ describe("Query", () => {
 
           const actual = yield* orderedQuery.first()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.none())
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(null)
         }),
       )
     })
@@ -534,12 +529,10 @@ describe("Query", () => {
         const orderedQuery = mockQuery<TableInfo<"user">>()
         const actual = orderedQuery.unique()
 
-        expectTypeOf(actual).toEqualTypeOf<
-          E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>, DocNotUniqueError, never>
-        >()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, DocNotUniqueError, never>>()
       })
 
-      it.effect("should return Some(doc) for single document", () =>
+      it.effect("should return Doc for single document", () =>
         E.gen(function* () {
           const doc: Doc<"user"> = {
             _id: mockGenericId("user", "user-1"),
@@ -554,14 +547,12 @@ describe("Query", () => {
 
           const actual = yield* orderedQuery.unique()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.some(doc))
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(doc)
         }),
       )
 
-      it.effect("should return None for no documents", () =>
+      it.effect("should return null for no documents", () =>
         E.gen(function* () {
           const orderedQuery = mockQuery<TableInfo<"user">>({
             take: vi.fn().mockResolvedValue([]),
@@ -569,10 +560,8 @@ describe("Query", () => {
 
           const actual = yield* orderedQuery.unique()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.none())
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(null)
         }),
       )
 
@@ -835,10 +824,10 @@ describe("QueryInitializer", () => {
         const orderedQuery = mockQueryInitializer<TableInfo<"user">>()
         const actual = orderedQuery.first()
 
-        expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<Doc<"user">>, never, never>>()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, never, never>>()
       })
 
-      it.effect("should return Some(Doc) when document exists", () =>
+      it.effect("should return Doc when document exists", () =>
         E.gen(function* () {
           const doc: Doc<"user"> = {
             _id: mockGenericId("user", "user-1"),
@@ -853,12 +842,12 @@ describe("QueryInitializer", () => {
 
           const actual = yield* orderedQuery.first()
 
-          expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
-          expect(actual).toEqual(Option.some(doc))
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(doc)
         }),
       )
 
-      it.effect("should return None when no documents exist", () =>
+      it.effect("should return null when no documents exist", () =>
         E.gen(function* () {
           const orderedQuery = mockQueryInitializer<TableInfo<"user">>({
             first: vi.fn().mockResolvedValue(null),
@@ -866,10 +855,8 @@ describe("QueryInitializer", () => {
 
           const actual = yield* orderedQuery.first()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.none())
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(null)
         }),
       )
     })
@@ -879,12 +866,10 @@ describe("QueryInitializer", () => {
         const orderedQuery = mockQueryInitializer<TableInfo<"user">>()
         const actual = orderedQuery.unique()
 
-        expectTypeOf(actual).toEqualTypeOf<
-          E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>, DocNotUniqueError, never>
-        >()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, DocNotUniqueError, never>>()
       })
 
-      it.effect("should return Some(doc) for single document", () =>
+      it.effect("should return Doc for single document", () =>
         E.gen(function* () {
           const doc: Doc<"user"> = {
             _id: mockGenericId("user", "user-1"),
@@ -899,14 +884,12 @@ describe("QueryInitializer", () => {
 
           const actual = yield* orderedQuery.unique()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.some(doc))
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(doc)
         }),
       )
 
-      it.effect("should return None for no documents", () =>
+      it.effect("should return null for no documents", () =>
         E.gen(function* () {
           const orderedQuery = mockQueryInitializer<TableInfo<"user">>({
             take: vi.fn().mockResolvedValue([]),
@@ -914,10 +897,8 @@ describe("QueryInitializer", () => {
 
           const actual = yield* orderedQuery.unique()
 
-          expectTypeOf(actual).toEqualTypeOf<
-            Option.Option<ConvexDocumentByInfo<TableInfo<"user">>>
-          >()
-          expect(actual).toEqual(Option.none())
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
+          expect(actual).toEqual(null)
         }),
       )
 

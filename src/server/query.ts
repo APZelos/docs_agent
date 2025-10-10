@@ -19,7 +19,7 @@ import type {
   SearchIndexNames,
 } from "convex/server"
 
-import {Effect as E, Option} from "effect"
+import {Effect as E} from "effect"
 
 import {DocNotUniqueError} from "./error"
 
@@ -99,32 +99,29 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
   /**
    * Execute the query and return the first result if there is one.
    *
-   * @returns An Effect that yields an Option containing the first document
-   * if the query has results, or Option.None if the query is empty.
+   * @returns An Effect that yields the first document if the query has results,
+   * or null if the query is empty.
    */
-  first(): E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo>>, never, never> {
-    return E.promise(async () => this.convexQuery.first()).pipe(E.map(Option.fromNullable))
+  first(): E.Effect<ConvexDocumentByInfo<TableInfo> | null, never, never> {
+    return E.promise(async () => this.convexQuery.first())
   }
 
   /**
    * Execute the query and return the singular result if there is one.
    *
-   * @returns An Effect that yields an Option containing the single document,
-   * or Option.None if no documents exist. Fails with DocNotUniqueError if
-   * multiple documents are found.
+   * @returns An Effect that yields a single document, or null if no documents exist.
+   * Fails with DocNotUniqueError if multiple documents are found.
    */
-  unique(): E.Effect<Option.Option<ConvexDocumentByInfo<TableInfo>>, DocNotUniqueError, never> {
-    return this.take(2)
-      .pipe(
-        E.flatMap((docs) => {
-          if (docs.length > 1) {
-            return E.fail(new DocNotUniqueError())
-          }
+  unique(): E.Effect<ConvexDocumentByInfo<TableInfo> | null, DocNotUniqueError, never> {
+    return this.take(2).pipe(
+      E.flatMap((docs) => {
+        if (docs.length > 1) {
+          return E.fail(new DocNotUniqueError())
+        }
 
-          return E.succeed(docs[0] ?? null)
-        }),
-      )
-      .pipe(E.map(Option.fromNullable))
+        return E.succeed(docs[0] ?? null)
+      }),
+    )
   }
 }
 
@@ -158,8 +155,8 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
  * | **Consuming**                                | Execute a query and return results as Effects. |
  * | [`collect()`](#collect)                      | Return all of the results as an Effect<Array>. |
  * | [`take(n: number)`](#take)                   | Return the first `n` results as an Effect<Array>. |
- * | [`first()`](#first)                          | Return the first result as an Effect<Option>. |
- * | [`unique()`](#unique)                        | Return the only result as Effect<Option>, fails with DocNotUniqueError if multiple found. |
+ * | [`first()`](#first)                          | Return the first result as an Effect. |
+ * | [`unique()`](#unique)                        | Return the only result as Effect, fails with DocNotUniqueError if multiple found. |
  *
  * To learn more about how to write queries, see [Querying the Database](https://docs.convex.dev/using/database-queries).
  */
