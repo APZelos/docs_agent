@@ -30,7 +30,7 @@ import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} fr
  * This interface defines the Context tags required to create typed
  * Convex functions with Effect-based handlers.
  */
-export interface CreateFunctionsArgs<DataModel extends GenericDataModel> {
+export interface CreateServerFunctionsArgs<DataModel extends GenericDataModel> {
   /** Context tag for query operations */
   QueryCtx: QueryCtxTag<DataModel>
   /** Context tag for mutation operations */
@@ -63,10 +63,10 @@ export interface CreateFunctionsArgs<DataModel extends GenericDataModel> {
  * })
  * ```
  */
-export function createFunctions<DataModel extends GenericDataModel>({
+export function createServerFunctions<DataModel extends GenericDataModel>({
   QueryCtx,
   MutationCtx,
-}: CreateFunctionsArgs<DataModel>) {
+}: CreateServerFunctionsArgs<DataModel>) {
   /**
    * Define a query in this Convex app's public API.
    *
