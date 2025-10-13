@@ -4,6 +4,7 @@ import type {
   GenericActionCtx as ConvexGenericActionCtx,
   GenericMutationCtx as ConvexGenericMutationCtx,
   GenericQueryCtx as ConvexGenericQueryCtx,
+  FunctionVisibility,
   GenericDataModel,
   PublicHttpAction,
   RegisteredMutation,
@@ -76,43 +77,18 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @param func - The query function handler that returns an Effect. Access services through `yield* QueryCtx`.
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
-  function query<
-    ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-    E = never,
-  >({
-    args,
-    handler,
-  }: {
-    args?: ArgsValidator
-    returns?: ReturnsValidator
-    handler: (
-      ...args: ArgsArrayForOptionalValidator<ArgsValidator>
-    ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>
-  }): RegisteredQuery<"public", ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>> {
-    if (args) {
-      return queryGeneric({
-        args,
-        handler: async (
-          convexQueryCtx: ConvexGenericQueryCtx<DataModel>,
-          ...handlerArgs: NoInfer<OneOrZeroArgs>
-        ) => {
-          const ctx = new GenericQueryCtx<DataModel>(convexQueryCtx)
-          return pipe(handler(...handlerArgs), E.provideService(QueryCtx, ctx), E.runPromise)
-        },
-      })
-    }
-
+  const query: EffectQueryBuilder<DataModel, "public"> = (fn: any) => {
+    const {args, handler = fn, returns} = fn
     return queryGeneric({
-      handler: async (
-        convexQueryCtx: ConvexGenericQueryCtx<DataModel>,
-        ...handlerArgs: NoInfer<OneOrZeroArgs>
-      ) => {
-        const ctx = new GenericQueryCtx<DataModel>(convexQueryCtx)
-        return pipe(handler(...handlerArgs), E.provideService(QueryCtx, ctx), E.runPromise)
-      },
+      args,
+      returns,
+      handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
+        E.runPromise(
+          pipe(
+            handler(...handlerArgs),
+            E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
+          ) as E.Effect<unknown, unknown, never>,
+        ),
     })
   }
 
@@ -125,43 +101,18 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @param func - The query function handler that returns an Effect. Access services through `yield* QueryCtx`.
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
-  function internalQuery<
-    ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-    E = never,
-  >({
-    args,
-    handler,
-  }: {
-    args?: ArgsValidator
-    returns?: ReturnsValidator
-    handler: (
-      ...args: ArgsArrayForOptionalValidator<ArgsValidator>
-    ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>
-  }): RegisteredQuery<"internal", ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>> {
-    if (args) {
-      return internalQueryGeneric({
-        args,
-        handler: async (
-          convexQueryCtx: ConvexGenericQueryCtx<DataModel>,
-          ...handlerArgs: NoInfer<OneOrZeroArgs>
-        ) => {
-          const ctx = new GenericQueryCtx<DataModel>(convexQueryCtx)
-          return pipe(handler(...handlerArgs), E.provideService(QueryCtx, ctx), E.runPromise)
-        },
-      })
-    }
-
+  const internalQuery: EffectQueryBuilder<DataModel, "internal"> = (fn: any) => {
+    const {args, handler = fn, returns} = fn
     return internalQueryGeneric({
-      handler: async (
-        convexQueryCtx: ConvexGenericQueryCtx<DataModel>,
-        ...handlerArgs: NoInfer<OneOrZeroArgs>
-      ) => {
-        const ctx = new GenericQueryCtx<DataModel>(convexQueryCtx)
-        return pipe(handler(...handlerArgs), E.provideService(QueryCtx, ctx), E.runPromise)
-      },
+      args,
+      returns,
+      handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
+        E.runPromise(
+          pipe(
+            handler(...handlerArgs),
+            E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
+          ) as E.Effect<unknown, unknown, never>,
+        ),
     })
   }
 
@@ -174,55 +125,19 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @param func - The mutation function handler that returns an Effect. Access services through `yield* MutationCtx`.
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
-  function mutation<
-    ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-    E = never,
-  >({
-    args,
-    handler,
-  }: {
-    args?: ArgsValidator
-    returns?: ReturnsValidator
-    handler: (
-      ...args: ArgsArrayForOptionalValidator<ArgsValidator>
-    ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
-  }): RegisteredMutation<
-    "public",
-    ArgsArrayToObject<NoInfer<OneOrZeroArgs>>,
-    Promise<ReturnValue>
-  > {
-    if (args) {
-      return mutationGeneric({
-        args,
-        handler: async (
-          convexMutationCtx: ConvexGenericMutationCtx<DataModel>,
-          ...handlerArgs: NoInfer<OneOrZeroArgs>
-        ) => {
-          return pipe(
-            handler(...handlerArgs),
-            E.provideService(QueryCtx, new GenericQueryCtx(convexMutationCtx)),
-            E.provideService(MutationCtx, new GenericMutationCtx(convexMutationCtx)),
-            E.runPromise,
-          )
-        },
-      })
-    }
-
+  const mutation: EffectMutationBuilder<DataModel, "public"> = (fn: any) => {
+    const {args, handler = fn, returns} = fn
     return mutationGeneric({
-      handler: async (
-        convexMutationCtx: ConvexGenericMutationCtx<DataModel>,
-        ...handlerArgs: NoInfer<OneOrZeroArgs>
-      ) => {
-        return pipe(
-          handler(...handlerArgs),
-          E.provideService(QueryCtx, new GenericQueryCtx(convexMutationCtx)),
-          E.provideService(MutationCtx, new GenericMutationCtx(convexMutationCtx)),
-          E.runPromise,
-        )
-      },
+      args,
+      returns,
+      handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
+        E.runPromise(
+          pipe(
+            handler(...handlerArgs),
+            E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
+            E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
+          ) as E.Effect<unknown, unknown, never>,
+        ),
     })
   }
 
@@ -235,47 +150,19 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @param func - The mutation function handler that returns an Effect. Access services through `yield* MutationCtx`.
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
-  function internalMutation<
-    ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-    E = never,
-  >({
-    args,
-    handler,
-  }: {
-    args?: ArgsValidator
-    returns?: ReturnsValidator
-    handler: (
-      ...args: ArgsArrayForOptionalValidator<ArgsValidator>
-    ) => E.Effect<ReturnValue, E, GenericMutationCtx<DataModel>>
-  }): RegisteredMutation<
-    "internal",
-    ArgsArrayToObject<NoInfer<OneOrZeroArgs>>,
-    Promise<ReturnValue>
-  > {
-    if (args) {
-      return internalMutationGeneric({
-        args,
-        handler: async (
-          convexMutationCtx: ConvexGenericMutationCtx<DataModel>,
-          ...handlerArgs: NoInfer<OneOrZeroArgs>
-        ) => {
-          const ctx = new GenericMutationCtx<DataModel>(convexMutationCtx)
-          return pipe(handler(...handlerArgs), E.provideService(MutationCtx, ctx), E.runPromise)
-        },
-      })
-    }
-
+  const internalMutation: EffectMutationBuilder<DataModel, "internal"> = (fn: any) => {
+    const {args, handler = fn, returns} = fn
     return internalMutationGeneric({
-      handler: async (
-        convexMutationCtx: ConvexGenericMutationCtx<DataModel>,
-        ...handlerArgs: NoInfer<OneOrZeroArgs>
-      ) => {
-        const ctx = new GenericMutationCtx<DataModel>(convexMutationCtx)
-        return pipe(handler(...handlerArgs), E.provideService(MutationCtx, ctx), E.runPromise)
-      },
+      args,
+      returns,
+      handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
+        E.runPromise(
+          pipe(
+            handler(...handlerArgs),
+            E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
+            E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
+          ) as E.Effect<unknown, unknown, never>,
+        ),
     })
   }
 
@@ -386,3 +273,135 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
 
   return {query, internalQuery, mutation, internalMutation, httpAction}
 }
+
+export type EffectQueryBuilder<
+  DataModel extends GenericDataModel,
+  Visibility extends FunctionVisibility,
+> = <
+  ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
+  ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
+  OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
+  ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
+  E = never,
+>(
+  query:
+    | {
+        /**
+         * Argument validation.
+         *
+         * Examples:
+         *
+         * ```
+         * args: {}
+         * args: { input: v.optional(v.number()) }
+         * args: { message: v.string(), author: v.id("authors") }
+         * args: { messages: v.array(v.string()) }
+         * ```
+         */
+        args?: ArgsValidator
+        /**
+         * The return value validator.
+         *
+         * Examples:
+         *
+         * ```
+         * returns: v.null()
+         * returns: v.string()
+         * returns: { message: v.string(), author: v.id("authors") }
+         * returns: v.array(v.string())
+         * ```
+         */
+        returns?: ReturnsValidator
+        /**
+         * The implementation of this function.
+         *
+         * This is a function that takes in the appropriate context and arguments
+         * and produces some result.
+         *
+         * @param args - The arguments object for this function. This will match
+         * the type defined by the argument validator if provided.
+         * @returns
+         */
+        handler: (
+          ...args: ArgsArrayForOptionalValidator<ArgsValidator>
+        ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>
+      }
+    /**
+     * The implementation of this function.
+     *
+     * This is a function that takes in the appropriate context and arguments
+     * and produces some result.
+     *
+     * @param args - The arguments object for this function. This will match
+     * the type defined by the argument validator if provided.
+     * @returns
+     */
+    | ((...args: OneOrZeroArgs) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>),
+) => RegisteredQuery<Visibility, ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>>
+
+export type EffectMutationBuilder<
+  DataModel extends GenericDataModel,
+  Visibility extends FunctionVisibility,
+> = <
+  ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
+  ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
+  OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
+  ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
+  E = never,
+>(
+  mutation:
+    | {
+        /**
+         * Argument validation.
+         *
+         * Examples:
+         *
+         * ```
+         * args: {}
+         * args: { input: v.optional(v.number()) }
+         * args: { message: v.string(), author: v.id("authors") }
+         * args: { messages: v.array(v.string()) }
+         * ```
+         */
+        args?: ArgsValidator
+        /**
+         * The return value validator.
+         *
+         * Examples:
+         *
+         * ```
+         * returns: v.null()
+         * returns: v.string()
+         * returns: { message: v.string(), author: v.id("authors") }
+         * returns: v.array(v.string())
+         * ```
+         */
+        returns?: ReturnsValidator
+        /**
+         * The implementation of this function.
+         *
+         * This is a function that takes in the appropriate context and arguments
+         * and produces some result.
+         *
+         * @param args - The arguments object for this function. This will match
+         * the type defined by the argument validator if provided.
+         * @returns
+         */
+        handler: (
+          ...args: ArgsArrayForOptionalValidator<ArgsValidator>
+        ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
+      }
+    /**
+     * The implementation of this function.
+     *
+     * This is a function that takes in the appropriate context and arguments
+     * and produces some result.
+     *
+     * @param args - The arguments object for this function. This will match
+     * the type defined by the argument validator if provided.
+     * @returns
+     */
+    | ((
+        ...args: OneOrZeroArgs
+      ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>),
+) => RegisteredMutation<Visibility, ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>>

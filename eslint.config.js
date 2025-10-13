@@ -31,6 +31,11 @@ export default defineConfig(
           ignoreTemplateLiterals: true,
         },
       ],
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/consistent-type-imports": ["error", {prefer: "type-imports"}],
+      "@typescript-eslint/promise-function-async": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -45,14 +50,8 @@ export default defineConfig(
       ],
       /* Allow void for async functions */
       "no-void": ["error", {allowAsStatement: true}],
-      /* Restrict function syntax (no arrow functions) */
-      "func-style": ["error", "declaration"],
-      /* Restric function syntax in objects */
       "object-shorthand": "error",
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/consistent-type-imports": ["error", {prefer: "type-imports"}],
       "prefer-const": "error",
-      "@typescript-eslint/promise-function-async": "error",
     },
   },
   eslintPluginPrettierRecommended,
