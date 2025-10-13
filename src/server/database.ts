@@ -23,17 +23,12 @@ import {QueryInitializer} from "./query"
  * functional combinators like pipe(), flatMap(), and map().
  *
  * The two entry points are:
- *   - {@link GenericDatabaseReader.get}, which returns an Effect<Option<T>>
+ *   - {@link GenericDatabaseReader.get}, which returns an Effect<T | null>
  *   - {@link GenericDatabaseReader.query}, which returns composable query Effects
  *
  * @example
  * ```typescript
- * const user = yield* db.get(userId).pipe(
- *   E.flatMap(Option.match({
- *     onNone: () => E.fail(new DocNotFoundError()),
- *     onSome: (user) => E.succeed(user)
- *   }))
- * )
+ * const user = yield* db.get(userId)
  * ```
  */
 export class GenericDatabaseReader<DataModel extends GenericDataModel> {
@@ -47,13 +42,13 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
    * Fetch a single document from the database by its {@link values.GenericId}.
    *
    * @param id - The {@link values.GenericId} of the document to fetch from the database.
-   * @returns An Effect that yields an Option containing the document if it exists,
-   * or Option.None if the document is not found. The Effect never fails.
+   * @returns An Effect that yields the document if it exists,
+   * or null if the document is not found.
    */
   get<TableName extends TableNamesInDataModel<DataModel>>(
     id: GenericId<TableName>,
-  ): E.Effect<Option.Option<DocumentByName<DataModel, TableName>>, never, never> {
-    return E.promise(async () => this.convexDb.get(id)).pipe(E.map(Option.fromNullable))
+  ): E.Effect<DocumentByName<DataModel, TableName> | null, never, never> {
+    return E.promise(async () => this.convexDb.get(id))
   }
 
   /**
@@ -77,7 +72,7 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
    * This accepts the string ID format as well as the `.toString()` representation
    * of the legacy class-based ID format.
    *
-   * This does not guarantee that the ID exists (i.e. `db.get(id)` may return Option.None).
+   * This does not guarantee that the ID exists.
    *
    * @param tableName - The name of the table.
    * @param id - The ID string.
