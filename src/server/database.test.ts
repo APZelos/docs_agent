@@ -39,7 +39,7 @@ describe("GenericDatabaseReader", () => {
       const db = mockGenericDatabaseReader<DataModel>()
       const actual = db.get(mockGenericId("user", "user-id"))
 
-      expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<Doc<"user">>, never, never>>()
+      expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, never, never>>()
     })
 
     it.effect("should return None when there is no doc for the provided id", () =>
@@ -47,7 +47,7 @@ describe("GenericDatabaseReader", () => {
         const db = mockGenericDatabaseReader<DataModel>({get: vi.fn().mockResolvedValue(null)})
         const actual = yield* db.get(mockGenericId("user", "non-existing-user-id"))
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
         expect(actual).toEqual(Option.none())
       }),
     )
@@ -63,7 +63,7 @@ describe("GenericDatabaseReader", () => {
         const db = mockGenericDatabaseReader<DataModel>({get: vi.fn().mockResolvedValue(doc)})
         const actual = yield* db.get(doc._id)
 
-        expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
+        expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
         expect(actual).toEqual(Option.some(doc))
       }),
     )
@@ -216,7 +216,7 @@ describe("GenericDatabaseWriter", () => {
         const db = mockGenericDatabaseWriter<DataModel>()
         const actual = db.get(mockGenericId("user", "user-id"))
 
-        expectTypeOf(actual).toEqualTypeOf<E.Effect<Option.Option<Doc<"user">>, never, never>>()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<Doc<"user"> | null, never, never>>()
       })
 
       it.effect("should return None when there is no doc for the provided id", () =>
@@ -224,7 +224,7 @@ describe("GenericDatabaseWriter", () => {
           const db = mockGenericDatabaseWriter<DataModel>({get: vi.fn().mockResolvedValue(null)})
           const actual = yield* db.get(mockGenericId("user", "non-existing-user-id"))
 
-          expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
           expect(actual).toEqual(Option.none())
         }),
       )
@@ -240,7 +240,7 @@ describe("GenericDatabaseWriter", () => {
           const db = mockGenericDatabaseWriter<DataModel>({get: vi.fn().mockResolvedValue(doc)})
           const actual = yield* db.get(doc._id)
 
-          expectTypeOf(actual).toEqualTypeOf<Option.Option<Doc<"user">>>()
+          expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
           expect(actual).toEqual(Option.some(doc))
         }),
       )

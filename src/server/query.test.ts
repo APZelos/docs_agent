@@ -9,7 +9,7 @@ import type {
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {defineSchema, defineTable} from "convex/server"
 import {v} from "convex/values"
-import {Effect as E, Option} from "effect"
+import {Effect as E} from "effect"
 
 import {
   mockConvexOrderedQuery,
