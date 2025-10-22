@@ -1,14 +1,4 @@
 import type {
-  DocNotUniqueError,
-  GenericMutationCtx,
-  GenericQueryCtx,
-  MutationCtxTag,
-  OrderedQuery,
-  Query,
-  QueryCtxTag,
-  QueryInitializer,
-} from "@server"
-import type {
   DataModelFromSchemaDefinition,
   DocumentByName,
   ExpressionOrValue,
@@ -37,6 +27,16 @@ import type {
   StreamQuery,
   StreamQueryInitializer,
 } from "../helpers/server/stream"
+import type {
+  DocNotUniqueError,
+  GenericMutationCtx,
+  GenericQueryCtx,
+  MutationCtxTag,
+  OrderedQuery,
+  Query,
+  QueryCtxTag,
+  QueryInitializer,
+} from "@server"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
@@ -302,6 +302,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       const {db} = yield* QueryCtx
       return yield* pipe(
         db.get(docId),
+        E.map(Option.fromNullable),
         E.flatMap(OptionSuccedOrFail(() => new DocNotFoundError())),
         E.map(S.decodeSync(Document)),
       )
@@ -321,7 +322,11 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       docId: GenericId<TableName>,
     ) {
       const {db} = yield* QueryCtx
-      return yield* pipe(db.get(docId), E.map(Option.map(S.decodeUnknownSync(Document))))
+      return yield* pipe(
+        db.get(docId),
+        E.map(Option.fromNullable),
+        E.map(Option.map(S.decodeUnknownSync(Document))),
+      )
     })
 
     const insert: (

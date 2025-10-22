@@ -1,4 +1,3 @@
-import type {GenericQueryCtx, QueryCtxTag} from "@server"
 import type {
   QueryStream as ConvexQueryStream,
   StreamDatabaseReader as ConvexStreamDatabaseReader,
@@ -20,6 +19,7 @@ import type {
   SchemaDefinition,
   TableNamesInDataModel,
 } from "convex/server"
+import type {GenericQueryCtx, QueryCtxTag} from "@server"
 
 import {
   mergedStream as convexMergedStream,

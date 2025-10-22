@@ -36,6 +36,8 @@ export default defineConfig(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-imports": ["error", {prefer: "type-imports"}],
       "@typescript-eslint/promise-function-async": "error",
+      "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

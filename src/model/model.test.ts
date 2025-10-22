@@ -1,10 +1,10 @@
-import type {GenericMutationCtx, GenericQueryCtx} from "@server"
 import type {
   DataModelFromSchemaDefinition,
   DocumentByName,
   TableNamesInDataModel,
 } from "convex/server"
 import type {GenericId} from "convex/values"
+import type {GenericMutationCtx, GenericQueryCtx} from "@server"
 
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {defineSchema, defineTable} from "convex/server"

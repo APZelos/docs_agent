@@ -9,7 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@lib": "/src/server",
+      "@lib": "/src/lib",
       "@server": "/src/server",
     },
   },
