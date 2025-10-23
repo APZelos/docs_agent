@@ -1,6 +1,5 @@
+import type {EmptyObject} from "convex-helpers"
 import type {
-  ArgsArrayForOptionalValidator,
-  ArgsArrayToObject,
   GenericActionCtx as ConvexGenericActionCtx,
   GenericMutationCtx as ConvexGenericMutationCtx,
   GenericQueryCtx as ConvexGenericQueryCtx,
@@ -9,9 +8,9 @@ import type {
   PublicHttpAction,
   RegisteredMutation,
   RegisteredQuery,
-  ReturnValueForOptionalValidator,
 } from "convex/server"
-import type {PropertyValidators, Validator} from "convex/values"
+import type {GenericId} from "convex/values"
+import type {Brand, Schema as S} from "effect"
 import type {MutationCtxTag, QueryCtxTag} from "./context"
 
 import {
@@ -277,41 +276,37 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
 export type EffectQueryBuilder<
   DataModel extends GenericDataModel,
   Visibility extends FunctionVisibility,
-> = <
-  ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-  ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-  OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-  ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-  E = never,
->(
+> = <ArgStructFields extends S.Struct.Fields | void = void, ReturnValue = any, E = never>(
   query:
     | {
         /**
-         * Argument validation.
+         * Argument schema.
          *
          * Examples:
          *
          * ```
          * args: {}
-         * args: { input: v.optional(v.number()) }
-         * args: { message: v.string(), author: v.id("authors") }
-         * args: { messages: v.array(v.string()) }
+         * args: { input: Schema.optional(Schema.Number) }
+         * args: { message: Schema.String, author: SDocId("authors") }
+         * args: { messages: Schema.Array(Schema.String) }
          * ```
          */
-        args?: ArgsValidator
+        args?: ArgStructFields
+
         /**
-         * The return value validator.
+         * The return value schema.
          *
          * Examples:
          *
          * ```
-         * returns: v.null()
-         * returns: v.string()
-         * returns: { message: v.string(), author: v.id("authors") }
-         * returns: v.array(v.string())
+         * returns: Schema.Null
+         * returns: Schema.String
+         * returns: { message: Schema.String, author: SDocId("authors") }
+         * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: ReturnsValidator
+        returns?: S.Schema<ReturnValue>
+
         /**
          * The implementation of this function.
          *
@@ -319,11 +314,12 @@ export type EffectQueryBuilder<
          * and produces some result.
          *
          * @param args - The arguments object for this function. This will match
-         * the type defined by the argument validator if provided.
+         * the type defined by the argument schema if provided.
          * @returns
          */
         handler: (
-          ...args: ArgsArrayForOptionalValidator<ArgsValidator>
+          args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
+          : void,
         ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>
       }
     /**
@@ -333,50 +329,54 @@ export type EffectQueryBuilder<
      * and produces some result.
      *
      * @param args - The arguments object for this function. This will match
-     * the type defined by the argument validator if provided.
+     * the type defined by the argument schema if provided.
      * @returns
      */
-    | ((...args: OneOrZeroArgs) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>),
-) => RegisteredQuery<Visibility, ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>>
+    | ((
+        args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
+        : void,
+      ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>),
+) => RegisteredQuery<
+  Visibility,
+  ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
+  : EmptyObject,
+  Promise<DeepMutable<ReturnValue>>
+>
 
 export type EffectMutationBuilder<
   DataModel extends GenericDataModel,
   Visibility extends FunctionVisibility,
-> = <
-  ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-  ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void,
-  OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator>,
-  ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = any,
-  E = never,
->(
+> = <ArgStructFields extends S.Struct.Fields | void = void, ReturnValue = any, E = never>(
   mutation:
     | {
         /**
-         * Argument validation.
+         * Argument schema.
          *
          * Examples:
          *
          * ```
          * args: {}
-         * args: { input: v.optional(v.number()) }
-         * args: { message: v.string(), author: v.id("authors") }
-         * args: { messages: v.array(v.string()) }
+         * args: { input: Schema.optional(Schema.Number) }
+         * args: { message: Schema.String, author: SDocId("authors") }
+         * args: { messages: Schema.Array(Schema.String) }
          * ```
          */
-        args?: ArgsValidator
+        args?: ArgStructFields
+
         /**
-         * The return value validator.
+         * The return value schema.
          *
          * Examples:
          *
          * ```
-         * returns: v.null()
-         * returns: v.string()
-         * returns: { message: v.string(), author: v.id("authors") }
-         * returns: v.array(v.string())
+         * returns: Schema.Null
+         * returns: Schema.String
+         * returns: { message: Schema.String, author: SDocId("authors") }
+         * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: ReturnsValidator
+        returns?: S.Schema<ReturnValue>
+
         /**
          * The implementation of this function.
          *
@@ -384,11 +384,12 @@ export type EffectMutationBuilder<
          * and produces some result.
          *
          * @param args - The arguments object for this function. This will match
-         * the type defined by the argument validator if provided.
+         * the type defined by the argument schema if provided.
          * @returns
          */
         handler: (
-          ...args: ArgsArrayForOptionalValidator<ArgsValidator>
+          args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
+          : void,
         ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
       }
     /**
@@ -398,10 +399,21 @@ export type EffectMutationBuilder<
      * and produces some result.
      *
      * @param args - The arguments object for this function. This will match
-     * the type defined by the argument validator if provided.
+     * the type defined by the argument schema if provided.
      * @returns
      */
     | ((
-        ...args: OneOrZeroArgs
+        args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
+        : void,
       ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>),
-) => RegisteredMutation<Visibility, ArgsArrayToObject<NoInfer<OneOrZeroArgs>>, Promise<ReturnValue>>
+) => RegisteredMutation<
+  Visibility,
+  ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
+  : EmptyObject,
+  Promise<DeepMutable<ReturnValue>>
+>
+
+export type DeepMutable<T> =
+  T extends Brand.Brand<any> | GenericId<any> ? T
+  : [keyof T] extends [never] ? T
+  : {-readonly [K in keyof T]: DeepMutable<T[K]>}
