@@ -182,7 +182,7 @@ type EncodedValue =
   | ArrayBuffer
   | null
 
-type EncodedSchemaToValidator<Value> =
+export type EncodedSchemaToValidator<Value> =
   IsAny<Value> extends true ? VAny
   : IsUnion<Value> extends true ? UnionToValidator<Value>
   : IsDocId<Value> extends true ? DocIdToValidator<Value>
@@ -243,7 +243,7 @@ type RecordToValidator<Value> =
     : never
   : never
 
-export type PropertyToValidator<Value> =
+type PropertyToValidator<Value> =
   undefined extends Value ?
     [Value] extends [(infer Property extends EncodedValue) | undefined] ?
       EncodedSchemaToValidator<Property> extends infer Vd extends AnyValidator ?
