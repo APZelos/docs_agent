@@ -1,14 +1,13 @@
-import {v} from "convex/values"
-import {Effect as E, Option} from "effect"
+import {Effect as E, Schema as S} from "effect"
 
 import {DocNotFoundError} from "../../server"
 import {mutation, MutationCtx} from "./concave"
 
-export const simple = mutation({
-  handler: E.fn(function* () {
+export const simple = mutation(
+  E.fn(function* () {
     const {db} = yield* MutationCtx
     const userId = yield* db.insert("user", {name: "Joe"})
-    const user = yield* db.get(userId).pipe(E.map(Option.getOrNull))
+    const user = yield* db.get(userId)
 
     if (!user) {
       return yield* E.fail(new DocNotFoundError())
@@ -16,16 +15,16 @@ export const simple = mutation({
 
     return user
   }),
-})
+)
 
 export const withArgs = mutation({
   args: {
-    name: v.string(),
+    name: S.String,
   },
   handler: E.fn(function* (args) {
     const {db} = yield* MutationCtx
     const userId = yield* db.insert("user", {name: args.name})
-    const user = yield* db.get(userId).pipe(E.map(Option.getOrNull))
+    const user = yield* db.get(userId)
 
     if (!user) {
       return yield* E.fail(new DocNotFoundError())
@@ -36,13 +35,13 @@ export const withArgs = mutation({
 })
 
 export const withReturns = mutation({
-  returns: {
-    name: v.string(),
-  },
+  returns: S.Struct({
+    name: S.String,
+  }),
   handler: E.fn(function* () {
     const {db} = yield* MutationCtx
     const userId = yield* db.insert("user", {name: "Joe"})
-    const user = yield* db.get(userId).pipe(E.map(Option.getOrNull))
+    const user = yield* db.get(userId)
 
     if (!user) {
       return yield* E.fail(new DocNotFoundError())
@@ -54,15 +53,15 @@ export const withReturns = mutation({
 
 export const withArgsAndReturns = mutation({
   args: {
-    name: v.string(),
+    name: S.String,
   },
-  returns: {
-    name: v.string(),
-  },
+  returns: S.Struct({
+    name: S.String,
+  }),
   handler: E.fn(function* (args) {
     const {db} = yield* MutationCtx
     const userId = yield* db.insert("user", {name: args.name})
-    const user = yield* db.get(userId).pipe(E.map(Option.getOrNull))
+    const user = yield* db.get(userId)
 
     if (!user) {
       return yield* E.fail(new DocNotFoundError())
