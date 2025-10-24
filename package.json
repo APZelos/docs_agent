@@ -1,5 +1,5 @@
 {
-  "name": "concave",
+  "name": "@apzelos/concave",
   "version": "0.0.1",
   "description": "",
   "type": "module",
@@ -59,7 +59,7 @@
     "convex",
     "effect"
   ],
-  "author": "",
+  "author": "apzelos",
   "license": "ISC",
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
