@@ -211,24 +211,20 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         q.filter(predicate) as any as Query
     }
 
-    function filterStreamWith(
-      predicate: <TError = never>(
-        doc: Document,
-      ) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
+    function filterStreamWith<TError = never>(
+      predicate: (doc: Document) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
     ) {
       return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, Doc<TableName>> =>
         q.filterWith(
-          E.fn(function* (doc) {
+          E.fn(function* (doc: Doc<TableName>) {
             const document = S.decodeSync(Document)(doc)
             return yield* predicate(document)
           }),
         )
     }
 
-    function mapStream<U extends GenericStreamItem>(
-      mapper: <TError = never>(
-        doc: Document,
-      ) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
+    function mapStream<U extends GenericStreamItem, TError = never>(
+      mapper: (doc: Document) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
     ) {
       return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, U> =>
         q.map(
@@ -265,17 +261,29 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         q.order(order)
     }
 
+    function orderStream<Schema extends SchemaDefinition<any, boolean>>(order: "asc" | "desc") {
+      return (
+        q: StreamQueryInitializer<Schema, TableName>,
+      ): QueryStream<DataModelFromSchemaDefinition<Schema>, Doc<TableName>> => q.order(order)
+    }
+
     function paginate(paginationOpts: PaginationOptions) {
       return (q: OrderedQuery<TableInfo>): E.Effect<DocumentPaginationResult> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
     function paginateStream(paginationOpts: StreamPaginationOptions) {
-      return (q: QueryStream<DataModel, TableInfo>): E.Effect<DocumentPaginationResult> =>
+      return (q: QueryStream<DataModel, Doc<TableName>>): E.Effect<DocumentPaginationResult> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
     function collect(q: OrderedQuery<TableInfo>): E.Effect<readonly Document[]> {
+      return pipe(q.collect(), E.map(pipe(S.Array(Document), S.decodeSync)))
+    }
+
+    function collectStream(
+      q: QueryStream<DataModel, Doc<TableName>>,
+    ): E.Effect<readonly Document[]> {
       return pipe(q.collect(), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
@@ -284,12 +292,29 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         pipe(q.take(n), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
+    function takeFromStream(n: number) {
+      return (q: QueryStream<DataModel, Doc<TableName>>): E.Effect<readonly Document[]> =>
+        pipe(q.take(n), E.map(pipe(S.Array(Document), S.decodeSync)))
+    }
+
     function first(q: OrderedQuery<TableInfo>): E.Effect<Option.Option<Document>> {
+      return pipe(q.first(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
+    }
+
+    function firstFromStream(
+      q: QueryStream<DataModel, Doc<TableName>>,
+    ): E.Effect<Option.Option<Document>> {
       return pipe(q.first(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
     function unique(
       q: OrderedQuery<TableInfo>,
+    ): E.Effect<Option.Option<Document>, DocNotUniqueError> {
+      return pipe(q.unique(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
+    }
+
+    function uniqueFromStream(
+      q: QueryStream<DataModel, Doc<TableName>>,
     ): E.Effect<Option.Option<Document>, DocNotUniqueError> {
       return pipe(q.unique(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
@@ -429,12 +454,17 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       flatMapStream,
       distinctStream,
       order,
+      orderStream,
       paginate,
       paginateStream,
       collect,
+      collectStream,
       take,
+      takeFromStream,
       first,
+      firstFromStream,
       unique,
+      uniqueFromStream,
       getById,
       getByIdNullable,
       getByIdOption,
