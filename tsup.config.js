@@ -7,10 +7,7 @@ export default defineConfig({
     "src/helpers/server/stream.ts",
     "src/model/index.ts",
   ],
-  dts: {
-    resolve: true,
-    only: true,
-  },
+  dts: true,
   sourcemap: true,
   clean: true,
   format: ["esm"],
