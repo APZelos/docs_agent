@@ -7,8 +7,12 @@ export default defineConfig({
     "src/helpers/server/stream.ts",
     "src/model/index.ts",
   ],
-  dts: true,
+  dts: {
+    resolve: true,
+    only: true,
+  },
   sourcemap: true,
   clean: true,
-  format: ["esm", "cjs"],
+  format: ["esm"],
+  external: ["effect", "convex", "convex-helpers"],
 })

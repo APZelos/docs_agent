@@ -6,44 +6,20 @@
   "sideEffects": false,
   "exports": {
     "./server": {
-      "import": {
-        "types": "./dist/server/index.d.ts",
-        "import": "./dist/server/index.js"
-      },
-      "require": {
-        "types": "./dist/server/index.d.cts",
-        "require": "./dist/server/index.cjs"
-      }
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
     },
     "./helpers/server/filter": {
-      "import": {
-        "types": "./dist/helpers/server/filter.d.ts",
-        "import": "./dist/helpers/server/filter.js"
-      },
-      "require": {
-        "types": "./dist/helpers/server/filter.d.cts",
-        "require": "./dist/helpers/server/filter.cjs"
-      }
+      "types": "./dist/helpers/server/filter.d.ts",
+      "import": "./dist/helpers/server/filter.js"
     },
     "./helpers/server/stream": {
-      "import": {
-        "types": "./dist/helpers/server/stream.d.ts",
-        "import": "./dist/helpers/server/stream.js"
-      },
-      "require": {
-        "types": "./dist/helpers/server/stream.d.cts",
-        "require": "./dist/helpers/server/stream.cjs"
-      }
+      "types": "./dist/helpers/server/stream.d.ts",
+      "import": "./dist/helpers/server/stream.js"
     },
     "./model": {
-      "import": {
-        "types": "./dist/model/index.d.ts",
-        "import": "./dist/model/index.js"
-      },
-      "require": {
-        "types": "./dist/model/index.d.cts",
-        "require": "./dist/model/index.cjs"
-      }
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js"
     }
   },
   "scripts": {

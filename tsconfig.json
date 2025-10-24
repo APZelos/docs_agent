@@ -31,8 +31,6 @@
     "noUnusedParameters": true,
     "forceConsistentCasingInFileNames": true,
 
-    "types": ["effect"],
-
     /* Path(s) */
     "baseUrl": ".",
     "paths": {
