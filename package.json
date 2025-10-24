@@ -59,6 +59,9 @@
     "convex",
     "effect"
   ],
+  "files": [
+    "dist"
+  ],
   "author": "apzelos",
   "license": "ISC",
   "devDependencies": {
