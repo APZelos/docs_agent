@@ -8,7 +8,7 @@ import type {OrderedQuery} from "../../server"
 
 import {filter as convexFilter} from "convex-helpers/server/filter"
 
-import {QueryInitializer} from "@server"
+import {QueryInitializer} from "../../server"
 
 type QueryTableInfo<Q> = Q extends OrderedQuery<infer T> ? T : never
 

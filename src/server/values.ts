@@ -17,12 +17,12 @@ import type {
   VUnion,
 } from "convex/values"
 import type {Brand} from "effect"
-import type {IsAny, IsLiteral, IsUnion, UnionToTuple} from "src/lib/types"
+import type {IsAny, IsLiteral, IsUnion, UnionToTuple} from "../lib/types"
 
 import {v} from "convex/values"
 import {Option, pipe, Schema as S, SchemaAST, String} from "effect"
 
-import {ConvexTableName} from "src/model"
+export const ConvexTableName = Symbol.for("ConvexTableName")
 
 export function SDocId<TableName extends string>(
   tableName: TableName,

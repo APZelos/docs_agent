@@ -36,15 +36,13 @@ import type {
   Query,
   QueryCtxTag,
   QueryInitializer,
-} from "@server"
+} from "../server"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
-import {DocNotFoundError} from "@server"
-import {OptionSuccedOrFail} from "src/lib/option"
 import {stream as streamHelper} from "../helpers/server/stream"
-
-export const ConvexTableName = Symbol.for("ConvexTableName")
+import {OptionSuccedOrFail} from "../lib/option"
+import {ConvexTableName, DocNotFoundError} from "../server"
 
 function PaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
   return S.Struct({

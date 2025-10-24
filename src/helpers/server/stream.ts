@@ -19,7 +19,7 @@ import type {
   SchemaDefinition,
   TableNamesInDataModel,
 } from "convex/server"
-import type {GenericQueryCtx, QueryCtxTag} from "@server"
+import type {GenericQueryCtx, QueryCtxTag} from "../../server"
 
 import {
   mergedStream as convexMergedStream,
@@ -27,7 +27,7 @@ import {
 } from "convex-helpers/server/stream"
 import {Effect as E, Option, pipe} from "effect"
 
-import {DocNotUniqueError} from "@server"
+import {DocNotUniqueError} from "../../server"
 
 export function stream<Schema extends SchemaDefinition<any, boolean>>(
   QueryCtx: QueryCtxTag<DataModelFromSchemaDefinition<Schema>>,
