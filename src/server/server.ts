@@ -10,7 +10,7 @@ import type {
   RegisteredQuery,
 } from "convex/server"
 import type {GenericId} from "convex/values"
-import type {Brand, Schema as S} from "effect"
+import type {Brand} from "effect"
 import type {MutationCtxTag, QueryCtxTag} from "./context"
 
 import {
@@ -20,9 +20,10 @@ import {
   mutationGeneric,
   queryGeneric,
 } from "convex/server"
-import {Effect as E, pipe} from "effect"
+import {Effect as E, pipe, Schema as S} from "effect"
 
 import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} from "./context"
+import {mapSchemaToValidator} from "./values"
 
 /**
  * Configuration arguments for creating Effect-based Convex functions.
@@ -77,14 +78,26 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
   const query: EffectQueryBuilder<DataModel, "public"> = (fn: any) => {
-    const {args, handler = fn, returns} = fn
+    const {args: fields, handler = fn, returns: ReturnsSchema} = fn
+    const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return queryGeneric({
-      args,
-      returns,
+      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
-            handler(...handlerArgs),
+            handler(
+              ArgsSchema ?
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+              : undefined,
+            ),
+            E.map((result) => {
+              if (ReturnsSchema) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return S.decodeSync(ReturnsSchema as S.Schema<any>)(result)
+              }
+              return result
+            }),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
           ) as E.Effect<unknown, unknown, never>,
         ),
@@ -101,14 +114,26 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @returns The wrapped query. Include this as an `export` to name it and make it accessible.
    */
   const internalQuery: EffectQueryBuilder<DataModel, "internal"> = (fn: any) => {
-    const {args, handler = fn, returns} = fn
+    const {args: fields, handler = fn, returns: ReturnsSchema} = fn
+    const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return internalQueryGeneric({
-      args,
-      returns,
+      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
-            handler(...handlerArgs),
+            handler(
+              ArgsSchema ?
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+              : undefined,
+            ),
+            E.map((result) => {
+              if (ReturnsSchema) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return S.decodeSync(ReturnsSchema as S.Schema<any>)(result)
+              }
+              return result
+            }),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
           ) as E.Effect<unknown, unknown, never>,
         ),
@@ -125,14 +150,26 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
   const mutation: EffectMutationBuilder<DataModel, "public"> = (fn: any) => {
-    const {args, handler = fn, returns} = fn
+    const {args: fields, handler = fn, returns: ReturnsSchema} = fn
+    const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return mutationGeneric({
-      args,
-      returns,
+      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
-            handler(...handlerArgs),
+            handler(
+              ArgsSchema ?
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+              : undefined,
+            ),
+            E.map((result) => {
+              if (ReturnsSchema) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return S.decodeSync(ReturnsSchema as S.Schema<any>)(result)
+              }
+              return result
+            }),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
             E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
           ) as E.Effect<unknown, unknown, never>,
@@ -150,14 +187,26 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @returns The wrapped mutation. Include this as an `export` to name it and make it accessible.
    */
   const internalMutation: EffectMutationBuilder<DataModel, "internal"> = (fn: any) => {
-    const {args, handler = fn, returns} = fn
+    const {args: fields, handler = fn, returns: ReturnsSchema} = fn
+    const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return internalMutationGeneric({
-      args,
-      returns,
+      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
-            handler(...handlerArgs),
+            handler(
+              ArgsSchema ?
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+              : undefined,
+            ),
+            E.map((result) => {
+              if (ReturnsSchema) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return S.decodeSync(ReturnsSchema as S.Schema<any>)(result)
+              }
+              return result
+            }),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
             E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
           ) as E.Effect<unknown, unknown, never>,
