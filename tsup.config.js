@@ -11,5 +11,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ["esm"],
-  external: ["effect", "convex", "convex-helpers"],
+  external: ["typescript", "effect", "convex", "convex-helpers"],
 })
