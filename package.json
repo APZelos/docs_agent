@@ -36,7 +36,12 @@
     "effect"
   ],
   "files": [
-    "dist"
+    "dist",
+    "src",
+    "package.json",
+    "tsconfig.json",
+    "!*.test.*",
+    "!test"
   ],
   "author": "apzelos",
   "license": "ISC",
