@@ -325,7 +325,12 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
 export type EffectQueryBuilder<
   DataModel extends GenericDataModel,
   Visibility extends FunctionVisibility,
-> = <ArgStructFields extends S.Struct.Fields | void = void, ReturnValue = any, E = never>(
+> = <
+  ArgStructFields extends S.Struct.Fields | void = void,
+  ReturnValueA = any,
+  ReturnValueI = ReturnValueA,
+  E = never,
+>(
   query:
     | {
         /**
@@ -354,7 +359,7 @@ export type EffectQueryBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<ReturnValue>
+        returns?: S.Schema<NoInfer<ReturnValueA>, ReturnValueI>
 
         /**
          * The implementation of this function.
@@ -369,7 +374,7 @@ export type EffectQueryBuilder<
         handler: (
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
-        ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>
+        ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel>>
       }
     /**
      * The implementation of this function.
@@ -384,18 +389,23 @@ export type EffectQueryBuilder<
     | ((
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
-      ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel>>),
+      ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel>>),
 ) => RegisteredQuery<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValue>>
+  Promise<DeepMutable<ReturnValueI>>
 >
 
 export type EffectMutationBuilder<
   DataModel extends GenericDataModel,
   Visibility extends FunctionVisibility,
-> = <ArgStructFields extends S.Struct.Fields | void = void, ReturnValue = any, E = never>(
+> = <
+  ArgStructFields extends S.Struct.Fields | void = void,
+  ReturnValueA = any,
+  ReturnValueI = ReturnValueA,
+  E = never,
+>(
   mutation:
     | {
         /**
@@ -424,7 +434,7 @@ export type EffectMutationBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<ReturnValue>
+        returns?: S.Schema<NoInfer<ReturnValueA>, ReturnValueI>
 
         /**
          * The implementation of this function.
@@ -439,7 +449,7 @@ export type EffectMutationBuilder<
         handler: (
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
-        ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
+        ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
       }
     /**
      * The implementation of this function.
@@ -454,12 +464,12 @@ export type EffectMutationBuilder<
     | ((
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
-      ) => E.Effect<ReturnValue, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>),
+      ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>),
 ) => RegisteredMutation<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValue>>
+  Promise<DeepMutable<ReturnValueI>>
 >
 
 export type DeepMutable<T> =
