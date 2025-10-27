@@ -359,7 +359,7 @@ export type EffectQueryBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<NoInfer<ReturnValueOutput>, ReturnValueInput>
+        returns?: S.Schema<ReturnValueOutput, ReturnValueInput>
 
         /**
          * The implementation of this function.
@@ -434,7 +434,7 @@ export type EffectMutationBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<NoInfer<ReturnValueOutput>, ReturnValueInput>
+        returns?: S.Schema<ReturnValueOutput, ReturnValueInput>
 
         /**
          * The implementation of this function.
