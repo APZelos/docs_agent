@@ -99,9 +99,9 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     typeof OptionalSystemFields<TableName>
   >
 
-  function model<TableName extends TableNamesInDataModel<DataModel>, A>(
+  function model<TableName extends TableNamesInDataModel<DataModel>, Output>(
     tableName: TableName,
-    tableSchema: S.Schema<A, WithoutSystemFields<Doc<TableName>>>,
+    tableSchema: S.Schema<Output, WithoutSystemFields<Doc<TableName>>>,
   ) {
     type TableInfo = NamedTableInfo<DataModel, TableName>
 
@@ -123,7 +123,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       description:
         "A schema representing a Convex document with optional the Convex system fields (_id, _creationTime, etc.)",
     }) as any as S.Schema<
-      A & {
+      Output & {
         readonly _id?: GenericId<TableName> | undefined
         readonly _creationTime?: number | undefined
       },
@@ -137,7 +137,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       title: `${tableName} document`,
       description: "A schema representing a Convex document",
     }) as any as S.Schema<
-      A & {readonly _id: GenericId<TableName>; readonly _creationTime: number},
+      Output & {readonly _id: GenericId<TableName>; readonly _creationTime: number},
       Doc<TableName>
     >
 

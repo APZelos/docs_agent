@@ -308,8 +308,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
    * @param func - The function handler that returns an Effect<Response>. Access services through `yield* HttpActionCtx`.
    * @returns The wrapped function. Import this function from `convex/http.js` and route it to hook it up.
    */
-  function httpAction<E = never>(
-    func: (request: Request) => E.Effect<Response, E, GenericActionCtx<GenericDataModel>>,
+  function httpAction<TError = never>(
+    func: (request: Request) => E.Effect<Response, TError, GenericActionCtx<GenericDataModel>>,
   ): PublicHttpAction {
     return httpActionGeneric(
       async (convexActionCtx: ConvexGenericActionCtx<GenericDataModel>, request: Request) => {
@@ -327,9 +327,9 @@ export type EffectQueryBuilder<
   Visibility extends FunctionVisibility,
 > = <
   ArgStructFields extends S.Struct.Fields | void = void,
-  ReturnValueA = any,
-  ReturnValueI = ReturnValueA,
-  E = never,
+  ReturnValueOutput = any,
+  ReturnValueInput = ReturnValueOutput,
+  TError = never,
 >(
   query:
     | {
@@ -359,7 +359,7 @@ export type EffectQueryBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<NoInfer<ReturnValueA>, ReturnValueI>
+        returns?: S.Schema<NoInfer<ReturnValueOutput>, ReturnValueInput>
 
         /**
          * The implementation of this function.
@@ -374,7 +374,7 @@ export type EffectQueryBuilder<
         handler: (
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
-        ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel>>
+        ) => E.Effect<ReturnValueOutput, TError, GenericQueryCtx<DataModel>>
       }
     /**
      * The implementation of this function.
@@ -389,12 +389,12 @@ export type EffectQueryBuilder<
     | ((
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
-      ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel>>),
+      ) => E.Effect<ReturnValueOutput, TError, GenericQueryCtx<DataModel>>),
 ) => RegisteredQuery<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValueI>>
+  Promise<DeepMutable<ReturnValueInput>>
 >
 
 export type EffectMutationBuilder<
@@ -402,9 +402,9 @@ export type EffectMutationBuilder<
   Visibility extends FunctionVisibility,
 > = <
   ArgStructFields extends S.Struct.Fields | void = void,
-  ReturnValueA = any,
-  ReturnValueI = ReturnValueA,
-  E = never,
+  ReturnValueOutput = any,
+  ReturnValueInput = ReturnValueOutput,
+  TError = never,
 >(
   mutation:
     | {
@@ -434,7 +434,7 @@ export type EffectMutationBuilder<
          * returns: Schema.Array(Schema.String)
          * ```
          */
-        returns?: S.Schema<NoInfer<ReturnValueA>, ReturnValueI>
+        returns?: S.Schema<NoInfer<ReturnValueOutput>, ReturnValueInput>
 
         /**
          * The implementation of this function.
@@ -449,7 +449,11 @@ export type EffectMutationBuilder<
         handler: (
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
-        ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>
+        ) => E.Effect<
+          ReturnValueOutput,
+          TError,
+          GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+        >
       }
     /**
      * The implementation of this function.
@@ -464,12 +468,16 @@ export type EffectMutationBuilder<
     | ((
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
-      ) => E.Effect<ReturnValueA, E, GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>>),
+      ) => E.Effect<
+        ReturnValueOutput,
+        TError,
+        GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
+      >),
 ) => RegisteredMutation<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValueI>>
+  Promise<DeepMutable<ReturnValueInput>>
 >
 
 export type DeepMutable<T> =
