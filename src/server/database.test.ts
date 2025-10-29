@@ -48,7 +48,7 @@ describe("GenericDatabaseReader", () => {
         const actual = yield* db.get(mockGenericId("user", "non-existing-user-id"))
 
         expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
-        expect(actual).toEqual(Option.none())
+        expect(actual).toEqual(null)
       }),
     )
 
@@ -64,7 +64,7 @@ describe("GenericDatabaseReader", () => {
         const actual = yield* db.get(doc._id)
 
         expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
-        expect(actual).toEqual(Option.some(doc))
+        expect(actual).toEqual(doc)
       }),
     )
   })
@@ -225,7 +225,7 @@ describe("GenericDatabaseWriter", () => {
           const actual = yield* db.get(mockGenericId("user", "non-existing-user-id"))
 
           expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
-          expect(actual).toEqual(Option.none())
+          expect(actual).toEqual(null)
         }),
       )
 
@@ -241,7 +241,7 @@ describe("GenericDatabaseWriter", () => {
           const actual = yield* db.get(doc._id)
 
           expectTypeOf(actual).toEqualTypeOf<Doc<"user"> | null>()
-          expect(actual).toEqual(Option.some(doc))
+          expect(actual).toEqual(doc)
         }),
       )
     })

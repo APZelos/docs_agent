@@ -1,7 +1,7 @@
 import {httpRouter} from "convex/server"
 import {Effect as E} from "effect"
 
-import {HttpActionCtx} from "src/server"
+import {HttpActionCtx} from "../../server"
 import {internal} from "./_generated/api"
 import {httpAction} from "./concave"
 

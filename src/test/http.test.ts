@@ -3,7 +3,7 @@ import {describe, expect, test} from "vitest"
 
 import {setup} from "./setup"
 
-async function json<A, I>(res: Response, schema: S.Schema<A, I>) {
+async function json<Output, Input>(res: Response, schema: S.Schema<Output, Input>) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const body = await res.json()
   return S.decodeUnknownPromise(schema)(body)
