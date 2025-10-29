@@ -23,6 +23,7 @@ import {Effect as E, Schema as S} from "effect"
 import {DocNotUniqueError} from "./error"
 
 export const SPaginationOptionsArg = S.Struct({
+  id: S.optional(S.Number),
   numItems: S.NonNegative,
   cursor: S.NullOr(S.String),
 })
