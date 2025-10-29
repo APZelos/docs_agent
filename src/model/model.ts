@@ -9,7 +9,6 @@ import type {
   NamedIndex,
   NamedSearchIndex,
   NamedTableInfo,
-  PaginationOptions,
   SchemaDefinition,
   SearchFilter,
   SearchFilterBuilder,
@@ -23,7 +22,6 @@ import type {ParseResult} from "effect"
 import type {
   GenericStreamItem,
   QueryStream,
-  PaginationOptions as StreamPaginationOptions,
   StreamQuery,
   StreamQueryInitializer,
 } from "../helpers/server/stream"
@@ -36,6 +34,7 @@ import type {
   Query,
   QueryCtxTag,
   QueryInitializer,
+  SPaginationOptions,
 } from "../server"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
@@ -265,12 +264,12 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       ): QueryStream<DataModelFromSchemaDefinition<Schema>, Doc<TableName>> => q.order(order)
     }
 
-    function paginate(paginationOpts: PaginationOptions) {
+    function paginate(paginationOpts: S.Schema.Type<typeof SPaginationOptions>) {
       return (q: OrderedQuery<TableInfo>): E.Effect<DocumentPaginationResult> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
-    function paginateStream(paginationOpts: StreamPaginationOptions) {
+    function paginateStream(paginationOpts: S.Schema.Type<typeof SPaginationOptions>) {
       return (q: QueryStream<DataModel, Doc<TableName>>): E.Effect<DocumentPaginationResult> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }

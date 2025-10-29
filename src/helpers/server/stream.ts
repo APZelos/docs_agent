@@ -5,7 +5,6 @@ import type {
   StreamQueryInitializer as ConvexStreamQueryInitializer,
 } from "convex-helpers/server/stream"
 import type {
-  PaginationOptions as BasePaginationOptions,
   PaginationResult as ConvexPaginationResult,
   DataModelFromSchemaDefinition,
   DocumentByInfo,
@@ -25,9 +24,9 @@ import {
   mergedStream as convexMergedStream,
   stream as convexStream,
 } from "convex-helpers/server/stream"
-import {Effect as E, Option, pipe} from "effect"
+import {Effect as E, Option, pipe, Schema as S} from "effect"
 
-import {DocNotUniqueError} from "../../server"
+import {DocNotUniqueError, SPaginationOptions} from "../../server"
 
 export function stream<Schema extends SchemaDefinition<any, boolean>>(
   QueryCtx: QueryCtxTag<DataModelFromSchemaDefinition<Schema>>,
@@ -103,9 +102,10 @@ export function orderStream<
 }
 
 export function paginateStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  paginationOpts: PaginationOptions,
+  paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
 ) {
-  return (q: QueryStream<DataModel, A>): E.Effect<PaginationResult<A>> => q.paginate(paginationOpts)
+  return (q: QueryStream<DataModel, A>): E.Effect<PaginationResult<A>> =>
+    q.paginate(S.decodeSync(SPaginationOptions)(paginationOpts))
 }
 
 export function collectStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
@@ -179,11 +179,6 @@ export class StreamDatabaseReader<Schema extends SchemaDefinition<any, boolean>>
 
 export type GenericStreamItem = NonNullable<unknown>
 
-export interface PaginationOptions extends BasePaginationOptions {
-  endCursor?: string | null
-  maximumRowsRead?: number
-}
-
 export class QueryStream<DataModel extends GenericDataModel, T extends GenericStreamItem> {
   QueryCtx: QueryCtxTag<DataModel>
   queryCtx: GenericQueryCtx<DataModel>
@@ -248,8 +243,12 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     )
   }
 
-  paginate(opts: PaginationOptions): E.Effect<ConvexPaginationResult<T>> {
-    return E.promise(async () => this.convexStream.paginate(opts))
+  paginate(
+    paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
+  ): E.Effect<ConvexPaginationResult<T>> {
+    return E.promise(async () =>
+      this.convexStream.paginate(S.decodeSync(SPaginationOptions)(paginationOpts)),
+    )
   }
 
   collect(): E.Effect<T[]> {

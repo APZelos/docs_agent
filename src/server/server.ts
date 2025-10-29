@@ -88,7 +88,7 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
           pipe(
             handler(
               ArgsSchema ?
-                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0])
               : undefined,
             ),
             E.map((result) => {
@@ -124,7 +124,7 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
           pipe(
             handler(
               ArgsSchema ?
-                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0])
               : undefined,
             ),
             E.map((result) => {
@@ -160,7 +160,7 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
           pipe(
             handler(
               ArgsSchema ?
-                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0])
               : undefined,
             ),
             E.map((result) => {
@@ -197,7 +197,7 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
           pipe(
             handler(
               ArgsSchema ?
-                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0]!)
+                S.decodeSync(ArgsSchema as any as S.Schema<any>)(handlerArgs[0])
               : undefined,
             ),
             E.map((result) => {

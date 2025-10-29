@@ -13,15 +13,26 @@ import type {
   IndexRangeBuilder,
   NamedIndex,
   NamedSearchIndex,
-  PaginationOptions,
   SearchFilter,
   SearchFilterBuilder,
   SearchIndexNames,
 } from "convex/server"
 
-import {Effect as E} from "effect"
+import {Effect as E, Schema as S} from "effect"
 
 import {DocNotUniqueError} from "./error"
+
+export const SPaginationOptionsArg = S.Struct({
+  numItems: S.NonNegative,
+  cursor: S.NullOr(S.String),
+})
+
+export const SPaginationOptions = S.Struct({
+  ...SPaginationOptionsArg.fields,
+  endCursor: S.optional(S.NullOr(S.String)),
+  maximumRowsRead: S.optional(S.NonNegative),
+  maximumBytesRead: S.optional(S.NonNegative),
+})
 
 /**
  * A {@link Query} with an order that has already been defined.
@@ -68,9 +79,11 @@ export class OrderedQuery<TableInfo extends ConvexGenericTableInfo> {
    * of results and a cursor to continue paginating.
    */
   paginate(
-    paginationOpts: PaginationOptions,
+    paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
   ): E.Effect<ConvexPaginationResult<ConvexDocumentByInfo<TableInfo>>, never, never> {
-    return E.promise(async () => this.convexQuery.paginate(paginationOpts))
+    return E.promise(async () =>
+      this.convexQuery.paginate(S.decodeSync(SPaginationOptions)(paginationOpts)),
+    )
   }
 
   /**
