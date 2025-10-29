@@ -168,26 +168,6 @@ function getTableNameAnnotationNullable(ast: SchemaAST.AST) {
   return pipe(getTableNameAnnotationOption(ast), Option.getOrNull)
 }
 
-type IsRecursive<T> = true extends DetectCycle<T> ? true : false
-
-type DetectCycle<T, Cache extends any[] = []> =
-  IsAny<T> extends true ? false
-  : [T] extends [any] ?
-    T extends Cache[number] ? true
-    : T extends Array<infer U> ? DetectCycle<U, [...Cache, T]>
-    : T extends Map<infer _U, infer V> ? DetectCycle<V, [...Cache, T]>
-    : T extends Set<infer U> ? DetectCycle<U, [...Cache, T]>
-    : T extends object ?
-      true extends (
-        {
-          [K in keyof T]: DetectCycle<T[K], [...Cache, T]>
-        }[keyof T]
-      ) ?
-        true
-      : false
-    : false
-  : never
-
 type AnyValidator = Validator<any, any, any>
 type EncodedArray = readonly EncodedValue[]
 type EncodedRecord = {readonly [key: string]: EncodedValue | undefined}
@@ -202,8 +182,7 @@ type EncodedValue =
   | null
 
 export type EncodedSchemaToValidator<Value> =
-  IsRecursive<Value> extends true ? VAny
-  : IsAny<Value> extends true ? VAny
+  IsAny<Value> extends true ? VAny
   : IsUnion<Value> extends true ? UnionToValidator<Value>
   : IsDocId<Value> extends true ? DocIdToValidator<Value>
   : IsLiteral<Value> extends true ? VLiteral<Value>
