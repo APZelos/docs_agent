@@ -1,6 +1,6 @@
 import type {Auth as ConvexAuth, UserIdentity} from "convex/server"
 
-import {Effect as E, Option} from "effect"
+import {Effect as E} from "effect"
 
 /**
  * An interface to access information about the currently authenticated user
@@ -21,7 +21,7 @@ export class Auth {
    * if no user is authenticated. On HTTP Actions, authentication failures
    * are handled through Effect's error channel.
    */
-  getUserIdentity(): E.Effect<Option.Option<UserIdentity>, never, never> {
-    return E.promise(async () => this.convexAuth.getUserIdentity()).pipe(E.map(Option.fromNullable))
+  getUserIdentity(): E.Effect<UserIdentity | null, never, never> {
+    return E.promise(async () => this.convexAuth.getUserIdentity())
   }
 }
