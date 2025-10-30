@@ -91,6 +91,90 @@ describe("model", () => {
     )
   })
 
+  describe("normalizeIdNullable", () => {
+    test("should have correct type signature", () => {
+      const actual = User.normalizeIdNullable("user-id")
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<Id<"user"> | null, never, GenericQueryCtx<DataModel>>
+      >()
+    })
+
+    it.effect("should return null if the value is not a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeIdNullable("user-id")
+        expect(actual).toEqual(null)
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue(null),
+            }),
+          }),
+        ),
+      ),
+    )
+
+    it.effect("should return id if value is a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeIdNullable("user-id")
+        expect(actual).toEqual("user-id")
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue("user-id"),
+            }),
+          }),
+        ),
+      ),
+    )
+  })
+
+  describe("normalizeIdOption", () => {
+    test("should have correct type signature", () => {
+      const actual = User.normalizeIdOption("user-id")
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<Option.Option<Id<"user">>, never, GenericQueryCtx<DataModel>>
+      >()
+    })
+
+    it.effect("should return None if the value is not a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeIdOption("user-id")
+        expect(actual).toEqual(Option.none())
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue(null),
+            }),
+          }),
+        ),
+      ),
+    )
+
+    it.effect("should return Some(id) if value is a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeIdOption("user-id")
+        expect(actual).toEqual(Option.some("user-id"))
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue("user-id"),
+            }),
+          }),
+        ),
+      ),
+    )
+  })
+
   describe("getById", () => {
     test("should have correct type signature", () => {
       const actual = User.getById(mockGenericId("user", "user-id"))

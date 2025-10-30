@@ -159,13 +159,29 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     ) => E.Effect<GenericId<TableName>, InvalidDocIdError, GenericQueryCtx<DataModel>> = E.fn(
       function* (docId: string) {
         const {db} = yield* QueryCtx
-        const normalizedId = yield* pipe(
+        return yield* pipe(
           db.normalizeId(tableName, docId),
           E.map(Option.fromNullable),
           E.flatMap(OptionSuccedOrFail(() => new InvalidDocIdError())),
         )
+      },
+    )
 
-        return normalizedId
+    const normalizeIdNullable: (
+      docId: string,
+    ) => E.Effect<GenericId<TableName> | null, never, GenericQueryCtx<DataModel>> = E.fn(function* (
+      docId: string,
+    ) {
+      const {db} = yield* QueryCtx
+      return yield* db.normalizeId(tableName, docId)
+    })
+
+    const normalizeIdOption: (
+      docId: string,
+    ) => E.Effect<Option.Option<GenericId<TableName>>, never, GenericQueryCtx<DataModel>> = E.fn(
+      function* (docId: string) {
+        const {db} = yield* QueryCtx
+        return yield* pipe(db.normalizeId(tableName, docId), E.map(Option.fromNullable))
       },
     )
 
@@ -455,6 +471,8 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       DocumentWithOptionalSystemFields,
       PartialDocument,
       normalizeId,
+      normalizeIdNullable,
+      normalizeIdOption,
       query,
       stream,
       fullTableScan,
