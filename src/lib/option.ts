@@ -1,6 +1,6 @@
 import {Effect as E, Option, pipe} from "effect"
 
-export function OptionSuccedOrFail<E>(onFail: () => E) {
+export function OptionSucceedOrFail<E>(onFail: () => E) {
   function match<A>(option: Option.Option<A>) {
     return pipe(
       option,

@@ -40,7 +40,7 @@ import type {
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
 import {stream as streamHelper} from "../helpers/server/stream"
-import {OptionSuccedOrFail} from "../lib/option"
+import {OptionSucceedOrFail} from "../lib/option"
 import {ConvexTableName, DocNotFoundError, InvalidDocIdError} from "../server"
 
 function PaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
@@ -162,7 +162,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         return yield* pipe(
           db.normalizeId(tableName, docId),
           E.map(Option.fromNullable),
-          E.flatMap(OptionSuccedOrFail(() => new InvalidDocIdError())),
+          E.flatMap(OptionSucceedOrFail(() => new InvalidDocIdError())),
         )
       },
     )
@@ -356,7 +356,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       return yield* pipe(
         db.get(docId),
         E.map(Option.fromNullable),
-        E.flatMap(OptionSuccedOrFail(() => new DocNotFoundError())),
+        E.flatMap(OptionSucceedOrFail(() => new DocNotFoundError())),
         E.map(S.decodeSync(Document)),
       )
     })
