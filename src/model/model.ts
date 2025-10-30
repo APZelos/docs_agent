@@ -154,6 +154,11 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     const DocumentPaginationResult = PaginationResult(Document)
     type DocumentPaginationResult = S.Schema.Type<typeof DocumentPaginationResult>
 
+    const normalizeId = E.fn(function* (id: string) {
+      const {db} = yield* QueryCtx
+      return db.normalizeId(id, tableName)
+    })
+
     const query = E.gen(function* () {
       const {db} = yield* QueryCtx
       return db.query(tableName)
@@ -439,6 +444,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       DocumentWithoutSystemFields,
       DocumentWithOptionalSystemFields,
       PartialDocument,
+      normalizeId,
       query,
       stream,
       fullTableScan,
