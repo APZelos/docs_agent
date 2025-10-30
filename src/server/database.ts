@@ -12,7 +12,7 @@ import type {GenericId} from "convex/values"
 
 import {Effect as E, Option, pipe} from "effect"
 
-import {DocInvalidId} from "./error"
+import {InvalidDocIdError} from "./error"
 import {QueryInitializer} from "./query"
 
 /**
@@ -76,19 +76,19 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
    *
    * @param tableName - The name of the table.
    * @param id - The ID string.
-   * @returns An Effect that yields the normalized ID or fails with DocInvalidId
+   * @returns An Effect that yields the normalized ID or fails with InvalidDocIdError
    * if the ID is invalid for the given table.
    */
   normalizeId<TableName extends TableNamesInDataModel<DataModel>>(
     tableName: TableName,
     id: string,
-  ): E.Effect<GenericId<TableName>, DocInvalidId, never> {
+  ): E.Effect<GenericId<TableName>, InvalidDocIdError, never> {
     return pipe(
       E.sync(() => this.convexDb.normalizeId(tableName, id)),
       E.map(Option.fromNullable),
       E.flatMap(
         Option.match({
-          onNone: () => E.fail(new DocInvalidId()),
+          onNone: () => E.fail(new InvalidDocIdError()),
           onSome: (normalizedId) => E.succeed(normalizedId),
         }),
       ),

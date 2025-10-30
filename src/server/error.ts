@@ -43,10 +43,10 @@ export class DocNotUniqueError extends Data.TaggedError("NotUniqueDocError") {}
  * @example
  * ```typescript
  * const normalizedId = yield* db.normalizeId("users", invalidIdString)
- *   .pipe(E.catchTag("DocInvalidId", () => E.succeed(null)))
+ *   .pipe(E.catchTag("InvalidDocIdError", () => E.succeed(null)))
  * ```
  */
-export class DocInvalidId extends Data.TaggedError("DocInvalidId") {}
+export class InvalidDocIdError extends Data.TaggedError("InvalidDocIdError") {}
 
 /**
  * Error thrown when a file is not found in Convex storage.
