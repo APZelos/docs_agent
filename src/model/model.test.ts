@@ -18,7 +18,7 @@ import {
   mockGenericMutationCtx,
   mockGenericQueryCtx,
 } from "src/test/mock"
-import {createMutationCtx, createQueryCtx, DocNotFoundError} from "../server"
+import {createMutationCtx, createQueryCtx, DocNotFoundError, InvalidDocIdError} from "../server"
 import {createModelFunction} from "./model"
 
 const schema = defineSchema({
@@ -48,6 +48,48 @@ describe("model", () => {
     name: "Joe",
     age: 22,
   }
+
+  describe("normalizeId", () => {
+    test("should have correct type signature", () => {
+      const actual = User.normalizeId("user-id")
+
+      expectTypeOf(actual).toEqualTypeOf<
+        E.Effect<Id<"user">, InvalidDocIdError, GenericQueryCtx<DataModel>>
+      >()
+    })
+
+    it.effect("should fail with InvalidDocIdError if the value is not a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeId("user-id").pipe(E.flip)
+        expect(actual).toBeInstanceOf(InvalidDocIdError)
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue(null),
+            }),
+          }),
+        ),
+      ),
+    )
+
+    it.effect("should return id if value is a valid doc id", () =>
+      E.gen(function* () {
+        const actual = yield* User.normalizeId("user-id")
+        expect(actual).toEqual("user-id")
+      }).pipe(
+        E.provideService(
+          QueryCtx,
+          mockGenericQueryCtx<DataModel>({
+            db: mockConvexGenericDatabaseReader<DataModel>({
+              normalizeId: vi.fn().mockReturnValue("user-id"),
+            }),
+          }),
+        ),
+      ),
+    )
+  })
 
   describe("getById", () => {
     test("should have correct type signature", () => {
