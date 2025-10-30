@@ -29,6 +29,7 @@ import type {
   DocNotUniqueError,
   GenericMutationCtx,
   GenericQueryCtx,
+  InvalidDocIdError,
   MutationCtxTag,
   OrderedQuery,
   Query,
@@ -154,10 +155,14 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     const DocumentPaginationResult = PaginationResult(Document)
     type DocumentPaginationResult = S.Schema.Type<typeof DocumentPaginationResult>
 
-    const normalizeId = E.fn(function* (id: string) {
-      const {db} = yield* QueryCtx
-      return db.normalizeId(id, tableName)
-    })
+    const normalizeId: (
+      docId: string,
+    ) => E.Effect<GenericId<TableName>, InvalidDocIdError, GenericQueryCtx<DataModel>> = E.fn(
+      function* (docId: string) {
+        const {db} = yield* QueryCtx
+        return yield* db.normalizeId(tableName, docId)
+      },
+    )
 
     const query = E.gen(function* () {
       const {db} = yield* QueryCtx
