@@ -29,7 +29,6 @@ import type {
   DocNotUniqueError,
   GenericMutationCtx,
   GenericQueryCtx,
-  InvalidDocIdError,
   MutationCtxTag,
   OrderedQuery,
   Query,
@@ -42,7 +41,7 @@ import {Effect as E, Option, pipe, Schema as S} from "effect"
 
 import {stream as streamHelper} from "../helpers/server/stream"
 import {OptionSuccedOrFail} from "../lib/option"
-import {ConvexTableName, DocNotFoundError} from "../server"
+import {ConvexTableName, DocNotFoundError, InvalidDocIdError} from "../server"
 
 function PaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
   return S.Struct({
@@ -160,7 +159,13 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
     ) => E.Effect<GenericId<TableName>, InvalidDocIdError, GenericQueryCtx<DataModel>> = E.fn(
       function* (docId: string) {
         const {db} = yield* QueryCtx
-        return yield* db.normalizeId(tableName, docId)
+        const normalizedId = yield* pipe(
+          db.normalizeId(tableName, docId),
+          E.map(Option.fromNullable),
+          E.flatMap(OptionSuccedOrFail(() => new InvalidDocIdError())),
+        )
+
+        return normalizedId
       },
     )
 

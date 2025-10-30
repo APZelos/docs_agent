@@ -87,7 +87,7 @@ describe("GenericDatabaseReader", () => {
       })
       const actual = db.normalizeId("user", "user-id")
 
-      expectTypeOf(actual).toEqualTypeOf<E.Effect<GenericId<"user">, InvalidDocIdError>>()
+      expectTypeOf(actual).toEqualTypeOf<E.Effect<GenericId<"user"> | null>>()
     })
 
     it.effect("should return normalized id when valid", () =>
@@ -98,19 +98,19 @@ describe("GenericDatabaseReader", () => {
         })
         const actual = yield* db.normalizeId("user", "user-id")
 
-        expectTypeOf(actual).toEqualTypeOf<Id<"user">>()
+        expectTypeOf(actual).toEqualTypeOf<Id<"user"> | null>()
         expect(actual).toEqual(validId)
       }),
     )
 
-    it.effect("should fail with InvalidDocIdError when id is invalid", () =>
+    it.effect("should return null when id is invalid", () =>
       E.gen(function* () {
         const db = mockGenericDatabaseReader<DataModel>({
           normalizeId: vi.fn().mockReturnValue(null),
         })
-        const actual = yield* db.normalizeId("user", "invalid-id").pipe(E.flip)
+        const actual = yield* db.normalizeId("user", "invalid-id")
 
-        expect(actual).toBeInstanceOf(InvalidDocIdError)
+        expect(actual).toEqual(null)
       }),
     )
   })
@@ -275,19 +275,19 @@ describe("GenericDatabaseWriter", () => {
           })
           const actual = yield* db.normalizeId("user", "user-id")
 
-          expectTypeOf(actual).toEqualTypeOf<Id<"user">>()
+          expectTypeOf(actual).toEqualTypeOf<Id<"user"> | null>()
           expect(actual).toEqual(validId)
         }),
       )
 
-      it.effect("should fail with InvalidDocIdError when id is invalid", () =>
+      it.effect("should return null when id is invalid", () =>
         E.gen(function* () {
           const db = mockGenericDatabaseWriter<DataModel>({
             normalizeId: vi.fn().mockReturnValue(null),
           })
-          const actual = yield* db.normalizeId("user", "invalid-id").pipe(E.flip)
+          const actual = yield* db.normalizeId("user", "invalid-id")
 
-          expect(actual).toBeInstanceOf(InvalidDocIdError)
+          expect(actual).toEqual(null)
         }),
       )
     })

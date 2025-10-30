@@ -10,9 +10,8 @@ import type {
 } from "convex/server"
 import type {GenericId} from "convex/values"
 
-import {Effect as E, Option, pipe} from "effect"
+import {Effect as E} from "effect"
 
-import {InvalidDocIdError} from "./error"
 import {QueryInitializer} from "./query"
 
 /**
@@ -82,17 +81,8 @@ export class GenericDatabaseReader<DataModel extends GenericDataModel> {
   normalizeId<TableName extends TableNamesInDataModel<DataModel>>(
     tableName: TableName,
     id: string,
-  ): E.Effect<GenericId<TableName>, InvalidDocIdError, never> {
-    return pipe(
-      E.sync(() => this.convexDb.normalizeId(tableName, id)),
-      E.map(Option.fromNullable),
-      E.flatMap(
-        Option.match({
-          onNone: () => E.fail(new InvalidDocIdError()),
-          onSome: (normalizedId) => E.succeed(normalizedId),
-        }),
-      ),
-    )
+  ): E.Effect<GenericId<TableName> | null, never, never> {
+    return E.sync(() => this.convexDb.normalizeId(tableName, id))
   }
 }
 
