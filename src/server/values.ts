@@ -42,14 +42,29 @@ export function SPaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
   })
 }
 
-export function mapSchemaToValidator<Schema extends S.Schema.All>(
+export function mapDecodedSchemaToValidator<Schema extends S.Schema.All>(
+  schema: Schema,
+): EncodedSchemaToValidator<S.Schema.Type<Schema>> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return mapAstToValidator(schema.ast, "decode") as any as EncodedSchemaToValidator<
+    S.Schema.Type<Schema>
+  >
+}
+
+export function mapEncodedSchemaToValidator<Schema extends S.Schema.All>(
   schema: Schema,
 ): EncodedSchemaToValidator<S.Schema.Encoded<Schema>> {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return mapAstToValidator(schema.ast) as any as EncodedSchemaToValidator<S.Schema.Encoded<Schema>>
+  return mapAstToValidator(schema.ast, "encode") as any as EncodedSchemaToValidator<
+    S.Schema.Encoded<Schema>
+  >
 }
 
-function mapAstToValidator(ast: SchemaAST.AST, isOptionalProperty = false): AnyValidator {
+function mapAstToValidator(
+  ast: SchemaAST.AST,
+  action: "decode" | "encode",
+  isOptionalProperty = false,
+): AnyValidator {
   let validator: AnyValidator
   switch (ast._tag) {
     case "AnyKeyword":
@@ -57,7 +72,7 @@ function mapAstToValidator(ast: SchemaAST.AST, isOptionalProperty = false): AnyV
       break
     case "Union": {
       const memberValidators: AnyValidator[] = ast.types.map((memberAst) =>
-        mapAstToValidator(memberAst),
+        mapAstToValidator(memberAst, action),
       )
       validator = v.union(...memberValidators)
       break
@@ -66,11 +81,11 @@ function mapAstToValidator(ast: SchemaAST.AST, isOptionalProperty = false): AnyV
       validator = ast.literal === null ? v.null() : v.literal(ast.literal)
       break
     case "TupleType": {
-      validator = mapAstTupleTypeToVArray(ast)
+      validator = mapAstTupleTypeToVArray(ast, action)
       break
     }
     case "TypeLiteral":
-      validator = mapAstTypeLiteralToValidator(ast)
+      validator = mapAstTypeLiteralToValidator(ast, action)
       break
     case "NumberKeyword":
       validator = v.number()
@@ -88,9 +103,22 @@ function mapAstToValidator(ast: SchemaAST.AST, isOptionalProperty = false): AnyV
     }
     // TODO: Handle ArrayBuffer
     case "Refinement":
-    case "Transformation":
-      validator = mapAstToValidator(ast.from)
+      validator = mapAstToValidator(ast.from, action)
       break
+    case "Transformation":
+      validator = mapAstToValidator(action === "decode" ? ast.to : ast.from, action)
+      break
+    case "Declaration": {
+      const [typeParameter, ...restTypeParameters] = ast.typeParameters
+      if (!typeParameter) {
+        throw new Error("Declaration schema without typeParameters")
+      }
+      if (restTypeParameters.length) {
+        throw new Error("Declaration schema with more than one typeParameters")
+      }
+      validator = mapAstToValidator(typeParameter, action)
+      break
+    }
     default:
       throw new Error(`Unsupported schema "${ast._tag}"`)
   }
@@ -102,18 +130,21 @@ function mapAstToValidator(ast: SchemaAST.AST, isOptionalProperty = false): AnyV
   return validator
 }
 
-function mapAstTupleTypeToVArray(ast: SchemaAST.TupleType): AnyValidator {
+function mapAstTupleTypeToVArray(
+  ast: SchemaAST.TupleType,
+  action: "decode" | "encode",
+): AnyValidator {
   const validators: AnyValidator[] = []
   for (const element of ast.elements) {
     if (element.isOptional) {
       throw new Error("Convex doesn't suuport optional elements for tuples")
     }
 
-    validators.push(mapAstToValidator(element.type))
+    validators.push(mapAstToValidator(element.type, action))
   }
 
   for (const astType of ast.rest) {
-    validators.push(mapAstToValidator(astType.type))
+    validators.push(mapAstToValidator(astType.type, action))
   }
 
   const [elementValidator, ...restValidators] = validators
@@ -127,30 +158,37 @@ function mapAstTupleTypeToVArray(ast: SchemaAST.TupleType): AnyValidator {
   return v.array(v.union(elementValidator, ...restValidators))
 }
 
-function mapAstTypeLiteralToValidator(ast: SchemaAST.TypeLiteral): AnyValidator {
+function mapAstTypeLiteralToValidator(
+  ast: SchemaAST.TypeLiteral,
+  action: "decode" | "encode",
+): AnyValidator {
   const [indexSignature] = ast.indexSignatures
   if (indexSignature) {
-    return mapIndexSignatureToVRecord(indexSignature)
+    return mapIndexSignatureToVRecord(indexSignature, action)
   }
 
-  return mapPropertySignaturesToVObject(ast.propertySignatures)
+  return mapPropertySignaturesToVObject(ast.propertySignatures, action)
 }
 
-function mapIndexSignatureToVRecord(signature: SchemaAST.IndexSignature): AnyValidator {
+function mapIndexSignatureToVRecord(
+  signature: SchemaAST.IndexSignature,
+  action: "decode" | "encode",
+): AnyValidator {
   if (signature.parameter._tag !== "StringKeyword") {
     throw new Error(
       `Convex supports only strings for record keys, ${signature.parameter._tag} schema is not supported.`,
     )
   }
 
-  const keyValidator = mapAstToValidator(signature.parameter)
-  const valueValidator = mapAstToValidator(signature.type)
+  const keyValidator = mapAstToValidator(signature.parameter, action)
+  const valueValidator = mapAstToValidator(signature.type, action)
 
   return v.record(keyValidator, valueValidator)
 }
 
 function mapPropertySignaturesToVObject(
   signatures: readonly SchemaAST.PropertySignature[],
+  action: "decode" | "encode",
 ): AnyValidator {
   const fields: Record<string, AnyValidator> = {}
 
@@ -168,11 +206,12 @@ function mapPropertySignaturesToVObject(
       propertyAst = signature.type
     }
 
-    fields[signature.name] = mapAstToValidator(propertyAst, signature.isOptional)
+    fields[signature.name] = mapAstToValidator(propertyAst, action, signature.isOptional)
   }
 
   return v.object(fields)
 }
+
 const getTableNameAnnotationOption = SchemaAST.getAnnotation<string>(ConvexTableName)
 
 function getTableNameAnnotationNullable(ast: SchemaAST.AST) {
