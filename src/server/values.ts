@@ -32,6 +32,16 @@ export function SDocId<TableName extends string>(
   >
 }
 
+export function SPaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
+  return S.Struct({
+    page: S.Array(schema),
+    isDone: S.Boolean,
+    continueCursor: S.String,
+    splitCursor: S.optional(S.NullOr(S.String)),
+    pageStatus: S.optional(S.NullOr(S.Literal("SplitRecommended", "SplitRequired"))),
+  })
+}
+
 export function mapSchemaToValidator<Schema extends S.Schema.All>(
   schema: Schema,
 ): EncodedSchemaToValidator<S.Schema.Encoded<Schema>> {

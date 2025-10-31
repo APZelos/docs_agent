@@ -41,19 +41,7 @@ import {Effect as E, Option, pipe, Schema as S} from "effect"
 
 import {stream as streamHelper} from "../helpers/server/stream"
 import {OptionSucceedOrFail} from "../lib/option"
-import {ConvexTableName, DocNotFoundError, InvalidDocIdError} from "../server"
-
-function PaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
-  return S.Struct({
-    page: S.Array(schema),
-    isDone: S.Boolean,
-    continueCursor: S.String,
-    splitCursor: S.optional(S.NullOr(S.String)),
-    pageStatus: S.optional(
-      S.NullOr(S.Union(S.Literal("SplitRecommended"), S.Literal("SplitRequired"))),
-    ),
-  })
-}
+import {ConvexTableName, DocNotFoundError, InvalidDocIdError, SPaginationResult} from "../server"
 
 export interface CreateModleFunctionArgs<Schema extends SchemaDefinition<any, boolean>> {
   /** Context tag for query operations */
@@ -151,7 +139,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
 
     type PartialDocument = S.Schema.Type<typeof PartialDocument>
 
-    const DocumentPaginationResult = PaginationResult(Document)
+    const DocumentPaginationResult = SPaginationResult(Document)
     type DocumentPaginationResult = S.Schema.Type<typeof DocumentPaginationResult>
 
     const normalizeId: (
