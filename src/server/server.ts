@@ -23,7 +23,7 @@ import {
 import {Effect as E, pipe, Schema as S} from "effect"
 
 import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} from "./context"
-import {mapSchemaToValidator} from "./values"
+import {mapDecodedSchemaToValidator, mapEncodedSchemaToValidator} from "./values"
 
 /**
  * Configuration arguments for creating Effect-based Convex functions.
@@ -81,8 +81,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
     const {args: fields, handler = fn, returns: ReturnsSchema} = fn
     const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return queryGeneric({
-      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
-      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
+      args: ArgsSchema ? mapEncodedSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapDecodedSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
@@ -117,8 +117,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
     const {args: fields, handler = fn, returns: ReturnsSchema} = fn
     const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return internalQueryGeneric({
-      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
-      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
+      args: ArgsSchema ? mapEncodedSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapDecodedSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexQueryCtx: ConvexGenericQueryCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
@@ -153,8 +153,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
     const {args: fields, handler = fn, returns: ReturnsSchema} = fn
     const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return mutationGeneric({
-      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
-      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
+      args: ArgsSchema ? mapEncodedSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapEncodedSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
@@ -190,8 +190,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
     const {args: fields, handler = fn, returns: ReturnsSchema} = fn
     const ArgsSchema = fields ? S.Struct(fields as S.Struct.Fields) : undefined
     return internalMutationGeneric({
-      args: ArgsSchema ? mapSchemaToValidator(ArgsSchema) : undefined,
-      returns: ReturnsSchema ? mapSchemaToValidator(ReturnsSchema) : undefined,
+      args: ArgsSchema ? mapEncodedSchemaToValidator(ArgsSchema) : undefined,
+      returns: ReturnsSchema ? mapEncodedSchemaToValidator(ReturnsSchema) : undefined,
       handler: async (convexMutationCtx: ConvexGenericMutationCtx<DataModel>, ...handlerArgs) =>
         E.runPromise(
           pipe(
