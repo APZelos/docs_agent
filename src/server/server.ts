@@ -327,8 +327,8 @@ export type EffectQueryBuilder<
   Visibility extends FunctionVisibility,
 > = <
   ArgStructFields extends S.Struct.Fields | void = void,
-  ReturnValueOutput = any,
-  ReturnValueInput = ReturnValueOutput,
+  ReturnValueInput = any,
+  ReturnValueOutput = ReturnValueInput,
   TError = never,
 >(
   query:
@@ -374,7 +374,7 @@ export type EffectQueryBuilder<
         handler: (
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
-        ) => E.Effect<ReturnValueOutput, TError, GenericQueryCtx<DataModel>>
+        ) => E.Effect<ReturnValueInput, TError, GenericQueryCtx<DataModel>>
       }
     /**
      * The implementation of this function.
@@ -389,12 +389,12 @@ export type EffectQueryBuilder<
     | ((
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
-      ) => E.Effect<ReturnValueOutput, TError, GenericQueryCtx<DataModel>>),
+      ) => E.Effect<ReturnValueInput, TError, GenericQueryCtx<DataModel>>),
 ) => RegisteredQuery<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValueInput>>
+  Promise<DeepMutable<ReturnValueOutput>>
 >
 
 export type EffectMutationBuilder<
@@ -402,8 +402,8 @@ export type EffectMutationBuilder<
   Visibility extends FunctionVisibility,
 > = <
   ArgStructFields extends S.Struct.Fields | void = void,
-  ReturnValueOutput = any,
-  ReturnValueInput = ReturnValueOutput,
+  ReturnValueInput = any,
+  ReturnValueOutput = ReturnValueInput,
   TError = never,
 >(
   mutation:
@@ -450,7 +450,7 @@ export type EffectMutationBuilder<
           args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
           : void,
         ) => E.Effect<
-          ReturnValueOutput,
+          ReturnValueInput,
           TError,
           GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
         >
@@ -469,7 +469,7 @@ export type EffectMutationBuilder<
         args: ArgStructFields extends S.Struct.Fields ? S.Schema.Type<S.Struct<ArgStructFields>>
         : void,
       ) => E.Effect<
-        ReturnValueOutput,
+        ReturnValueInput,
         TError,
         GenericQueryCtx<DataModel> | GenericMutationCtx<DataModel>
       >),
@@ -477,7 +477,7 @@ export type EffectMutationBuilder<
   Visibility,
   ArgStructFields extends S.Struct.Fields ? DeepMutable<S.Schema.Encoded<S.Struct<ArgStructFields>>>
   : EmptyObject,
-  Promise<DeepMutable<ReturnValueInput>>
+  Promise<DeepMutable<ReturnValueOutput>>
 >
 
 export type DeepMutable<T> =
