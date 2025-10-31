@@ -45,6 +45,7 @@ export function SPaginationResult<Schema extends S.Schema.Any>(schema: Schema) {
 export function mapSchemaToValidator<Schema extends S.Schema.All>(
   schema: Schema,
 ): EncodedSchemaToValidator<S.Schema.Encoded<Schema>> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return mapAstToValidator(schema.ast) as any as EncodedSchemaToValidator<S.Schema.Encoded<Schema>>
 }
 

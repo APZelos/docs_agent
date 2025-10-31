@@ -11,7 +11,7 @@ import type {QueryInitializer} from "./query"
 import {describe, expect, expectTypeOf, it, test, vi} from "@effect/vitest"
 import {defineSchema, defineTable} from "convex/server"
 import {v} from "convex/values"
-import {Effect as E, Option} from "effect"
+import {Effect as E} from "effect"
 
 import {
   mockGenericDatabaseReader,
@@ -19,7 +19,6 @@ import {
   mockGenericId,
   mockQueryInitializer,
 } from "src/test/mock"
-import {InvalidDocIdError} from "./error"
 
 const _schema = defineSchema({
   user: defineTable({
@@ -264,7 +263,7 @@ describe("GenericDatabaseWriter", () => {
         })
         const actual = db.normalizeId("user", "user-id")
 
-        expectTypeOf(actual).toEqualTypeOf<E.Effect<GenericId<"user">, InvalidDocIdError>>()
+        expectTypeOf(actual).toEqualTypeOf<E.Effect<GenericId<"user"> | null, never>>()
       })
 
       it.effect("should return normalized id when valid", () =>
