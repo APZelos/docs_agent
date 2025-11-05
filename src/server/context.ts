@@ -58,6 +58,20 @@ export class GenericQueryCtx<DataModel extends GenericDataModel> {
     this.db = new GenericDatabaseReader(convexQueryCtx.db)
     this.storage = new StorageReader(convexQueryCtx.storage)
   }
+
+  /**
+   * Call a query function within the same transaction.
+   *
+   * NOTE: often you can call the query's function directly instead of using this.
+   * `runQuery` incurs overhead of running argument and return value validation,
+   * and creating a new isolated JS context.
+   */
+  runQuery<Query extends FunctionReference<"query", FunctionVisibility>>(
+    query: Query,
+    ...args: OptionalRestArgs<Query>
+  ): E.Effect<FunctionReturnType<Query>> {
+    return E.promise(async () => this.convexQueryCtx.runQuery(query, ...args))
+  }
 }
 
 /**
@@ -132,6 +146,38 @@ export class GenericMutationCtx<DataModel extends GenericDataModel> {
     this.db = new GenericDatabaseWriter(convexMutationCtx.db)
     this.storage = new StorageWriter(convexMutationCtx.storage)
     this.scheduler = new Scheduler(convexMutationCtx.scheduler)
+  }
+
+  /**
+   * Call a query function within the same transaction.
+   *
+   * NOTE: often you can call the query's function directly instead of using this.
+   * `runQuery` incurs overhead of running argument and return value validation,
+   * and creating a new isolated JS context.
+   */
+  runQuery<Query extends FunctionReference<"query", FunctionVisibility>>(
+    query: Query,
+    ...args: OptionalRestArgs<Query>
+  ): E.Effect<FunctionReturnType<Query>> {
+    return E.promise(async () => this.convexMutationCtx.runQuery(query, ...args))
+  }
+
+  /**
+   * Call a mutation function within the same transaction.
+   *
+   * NOTE: often you can call the mutation's function directly instead of using this.
+   * `runMutation` incurs overhead of running argument and return value validation,
+   * and creating a new isolated JS context.
+   *
+   * The mutation runs in a sub-transaction, so if the mutation throws an error,
+   * all of its writes will be rolled back. Additionally, a successful mutation's
+   * writes will be serializable with other writes in the transaction.
+   */
+  runMutation<Mutation extends FunctionReference<"mutation", FunctionVisibility>>(
+    mutation: Mutation,
+    ...args: OptionalRestArgs<Mutation>
+  ): E.Effect<FunctionReturnType<Mutation>> {
+    return E.promise(async () => this.convexMutationCtx.runMutation(mutation, ...args))
   }
 }
 
