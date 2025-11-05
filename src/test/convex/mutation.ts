@@ -10,7 +10,7 @@ export const simple = mutation(
     const user = yield* db.get(userId)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError())
+      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
     }
 
     return user
@@ -27,7 +27,7 @@ export const withArgs = mutation({
     const user = yield* db.get(userId)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError())
+      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
     }
 
     return user
@@ -44,7 +44,7 @@ export const withReturns = mutation({
     const user = yield* db.get(userId)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError())
+      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
     }
 
     return {name: user.name}
@@ -64,7 +64,7 @@ export const withArgsAndReturns = mutation({
     const user = yield* db.get(userId)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError())
+      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
     }
 
     return {name: user.name}

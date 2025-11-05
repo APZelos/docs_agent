@@ -150,7 +150,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         return yield* pipe(
           db.normalizeId(tableName, docId),
           E.map(Option.fromNullable),
-          E.flatMap(OptionSucceedOrFail(() => new InvalidDocIdError())),
+          E.flatMap(OptionSucceedOrFail(() => new InvalidDocIdError({tableName, value: docId}))),
         )
       },
     )
@@ -344,7 +344,7 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       return yield* pipe(
         db.get(docId),
         E.map(Option.fromNullable),
-        E.flatMap(OptionSucceedOrFail(() => new DocNotFoundError())),
+        E.flatMap(OptionSucceedOrFail(() => new DocNotFoundError({tableName, metadata: {docId}}))),
         E.map(S.decodeSync(Document)),
       )
     })

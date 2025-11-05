@@ -16,7 +16,10 @@ import {Data} from "effect"
  * )
  * ```
  */
-export class DocNotFoundError extends Data.TaggedError("DocNotFoundError") {}
+export class DocNotFoundError extends Data.TaggedError("DocNotFoundError")<{
+  tableName: string
+  metadata?: Record<string, any>
+}> {}
 
 /**
  * Error thrown when a query expects exactly one document but finds multiple.
@@ -46,7 +49,11 @@ export class DocNotUniqueError extends Data.TaggedError("NotUniqueDocError") {}
  *   .pipe(E.catchTag("InvalidDocIdError", () => E.succeed(null)))
  * ```
  */
-export class InvalidDocIdError extends Data.TaggedError("InvalidDocIdError") {}
+export class InvalidDocIdError extends Data.TaggedError("InvalidDocIdError")<{
+  tableName: string
+  value: string
+  metadata?: Record<string, any>
+}> {}
 
 /**
  * Error thrown when a file is not found in Convex storage.

@@ -23,7 +23,7 @@ export const getUserById = internalQuery({
     const user = yield* db.get(args.userId)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError())
+      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
     }
 
     return user
