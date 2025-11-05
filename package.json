@@ -9,11 +9,11 @@
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
     },
-    "./helpers/server/filter": {
+    "./helpers/server/filter.js": {
       "types": "./dist/helpers/server/filter.d.ts",
       "import": "./dist/helpers/server/filter.js"
     },
-    "./helpers/server/stream": {
+    "./helpers/server/stream.js": {
       "types": "./dist/helpers/server/stream.d.ts",
       "import": "./dist/helpers/server/stream.js"
     },
