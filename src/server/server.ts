@@ -20,7 +20,7 @@ import {
   mutationGeneric,
   queryGeneric,
 } from "convex/server"
-import {Effect as E, pipe, Schema as S} from "effect"
+import {Console, Effect as E, pipe, Schema as S} from "effect"
 
 import {GenericActionCtx, GenericMutationCtx, GenericQueryCtx, HttpActionCtx} from "./context"
 import {mapDecodedSchemaToValidator, mapEncodedSchemaToValidator} from "./values"
@@ -98,6 +98,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
               }
               return result
             }),
+            E.tapError((error) => Console.error("Unhandled error:", error)),
+            E.tapDefect((defect) => Console.error("Unexpected error:", defect)),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
           ) as E.Effect<unknown, unknown, never>,
         ),
@@ -134,6 +136,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
               }
               return result
             }),
+            E.tapError((error) => Console.error("Unhandled error:", error)),
+            E.tapDefect((defect) => Console.error("Unexpected error:", defect)),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexQueryCtx)),
           ) as E.Effect<unknown, unknown, never>,
         ),
@@ -170,6 +174,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
               }
               return result
             }),
+            E.tapError((error) => Console.error("Unhandled error:", error)),
+            E.tapDefect((defect) => Console.error("Unexpected error:", defect)),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
             E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
           ) as E.Effect<unknown, unknown, never>,
@@ -207,6 +213,8 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
               }
               return result
             }),
+            E.tapError((error) => Console.error("Unhandled error:", error)),
+            E.tapDefect((defect) => Console.error("Unexpected error:", defect)),
             E.provideService(QueryCtx, new GenericQueryCtx<DataModel>(convexMutationCtx)),
             E.provideService(MutationCtx, new GenericMutationCtx<DataModel>(convexMutationCtx)),
           ) as E.Effect<unknown, unknown, never>,
@@ -314,7 +322,13 @@ export function createServerFunctions<DataModel extends GenericDataModel>({
     return httpActionGeneric(
       async (convexActionCtx: ConvexGenericActionCtx<GenericDataModel>, request: Request) => {
         const ctx = new GenericActionCtx(convexActionCtx)
-        return pipe(func(request), E.provideService(HttpActionCtx, ctx), E.runPromise)
+        return pipe(
+          func(request),
+          E.tapError((error) => Console.error("Unhandled error:", error)),
+          E.tapDefect((defect) => Console.error("Unexpected error:", defect)),
+          E.provideService(HttpActionCtx, ctx),
+          E.runPromise,
+        )
       },
     )
   }
