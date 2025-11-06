@@ -36,6 +36,7 @@ import type {
   QueryInitializer,
   SPaginationOptions,
 } from "../server"
+import type {SafeUnion} from "src/lib/types"
 
 import {Effect as E, Option, pipe, Schema as S} from "effect"
 
@@ -227,10 +228,12 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         q.filter(predicate) as any as Query
     }
 
-    function filterStreamWith<TError = never>(
-      predicate: (doc: Document) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
+    function filterStreamWith<SError = never, PError = never>(
+      predicate: (doc: Document) => E.Effect<boolean, PError, GenericQueryCtx<DataModel>>,
     ) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, Doc<TableName>> =>
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): QueryStream<DataModel, Doc<TableName>, SafeUnion<SError, PError>> =>
         q.filterWith(
           E.fn(function* (doc: Doc<TableName>) {
             const document = S.decodeSync(Document)(doc)
@@ -239,10 +242,12 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         )
     }
 
-    function mapStream<U extends GenericStreamItem, TError = never>(
-      mapper: (doc: Document) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
+    function mapStream<U extends GenericStreamItem, SError = never, MError = never>(
+      mapper: (doc: Document) => E.Effect<U | null, MError, GenericQueryCtx<DataModel>>,
     ) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, U> =>
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): QueryStream<DataModel, U, SafeUnion<SError, MError>> =>
         q.map(
           E.fn(function* (doc) {
             const document = S.decodeSync(Document)(doc)
@@ -251,13 +256,15 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         )
     }
 
-    function flatMapStream<U extends GenericStreamItem>(
-      mapper: <TError = never>(
+    function flatMapStream<U extends GenericStreamItem, SError = never, MError = never>(
+      mapper: (
         doc: Document,
-      ) => E.Effect<QueryStream<DataModel, U>, TError, GenericQueryCtx<DataModel>>,
+      ) => E.Effect<QueryStream<DataModel, U>, MError, GenericQueryCtx<DataModel>>,
       mappedIndexFields: string[],
     ) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, U> =>
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): QueryStream<DataModel, U, SafeUnion<SError, MError>> =>
         q.flatMap(
           E.fn(function* (doc) {
             const document = S.decodeSync(Document)(doc)
@@ -267,9 +274,10 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         )
     }
 
-    function distinctStream(distinctIndexFields: string[]) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): QueryStream<DataModel, Doc<TableName>> =>
-        q.distinct(distinctIndexFields)
+    function distinctStream<SError = never>(distinctIndexFields: string[]) {
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): QueryStream<DataModel, Doc<TableName>, SError> => q.distinct(distinctIndexFields)
     }
 
     function order(order: "asc" | "desc") {
@@ -288,8 +296,12 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
-    function paginateStream(paginationOpts: S.Schema.Type<typeof SPaginationOptions>) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): E.Effect<DocumentPaginationResult> =>
+    function paginateStream<SError = never>(
+      paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
+    ) {
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): E.Effect<DocumentPaginationResult, SError> =>
         pipe(q.paginate(paginationOpts), E.map(S.decodeSync(DocumentPaginationResult)))
     }
 
@@ -297,9 +309,9 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       return pipe(q.collect(), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
-    function collectStream(
-      q: QueryStream<DataModel, Doc<TableName>>,
-    ): E.Effect<readonly Document[]> {
+    function collectStream<SError = never>(
+      q: QueryStream<DataModel, Doc<TableName>, SError>,
+    ): E.Effect<readonly Document[], SError> {
       return pipe(q.collect(), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
@@ -308,8 +320,10 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
         pipe(q.take(n), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
-    function takeFromStream(n: number) {
-      return (q: QueryStream<DataModel, Doc<TableName>>): E.Effect<readonly Document[]> =>
+    function takeFromStream<SError = never>(n: number) {
+      return (
+        q: QueryStream<DataModel, Doc<TableName>, SError>,
+      ): E.Effect<readonly Document[], SError> =>
         pipe(q.take(n), E.map(pipe(S.Array(Document), S.decodeSync)))
     }
 
@@ -317,9 +331,9 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       return pipe(q.first(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
-    function firstFromStream(
-      q: QueryStream<DataModel, Doc<TableName>>,
-    ): E.Effect<Option.Option<Document>> {
+    function firstFromStream<SError = never>(
+      q: QueryStream<DataModel, Doc<TableName>, SError>,
+    ): E.Effect<Option.Option<Document>, SError> {
       return pipe(q.first(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
@@ -329,9 +343,9 @@ export function createModelFunction<Schema extends SchemaDefinition<any, boolean
       return pipe(q.unique(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 
-    function uniqueFromStream(
-      q: QueryStream<DataModel, Doc<TableName>>,
-    ): E.Effect<Option.Option<Document>, DocNotUniqueError> {
+    function uniqueFromStream<SError = never>(
+      q: QueryStream<DataModel, Doc<TableName>, SError>,
+    ): E.Effect<Option.Option<Document>, SafeUnion<SError, DocNotUniqueError>> {
       return pipe(q.unique(), E.map(Option.fromNullable), E.map(Option.map(S.decodeSync(Document))))
     }
 

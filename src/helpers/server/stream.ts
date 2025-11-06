@@ -19,12 +19,13 @@ import type {
   TableNamesInDataModel,
 } from "convex/server"
 import type {GenericQueryCtx, QueryCtxTag} from "../../server"
+import type {SafeUnion} from "src/lib/types"
 
 import {
   mergedStream as convexMergedStream,
   stream as convexStream,
 } from "convex-helpers/server/stream"
-import {Effect as E, Option, pipe, Schema as S} from "effect"
+import {Effect as E, Option, pipe, Runtime, Schema as S} from "effect"
 
 import {DocNotUniqueError, SPaginationOptions} from "../../server"
 
@@ -54,38 +55,50 @@ export function withStreamIndex<
   ): StreamQuery<Schema, TableName, IndexName> => q.withIndex(indexName, indexRange)
 }
 
-export function filterStreamWith<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  predicate: <TError = never>(value: A) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
-) {
-  return (q: QueryStream<DataModel, A>): QueryStream<DataModel, A> => q.filterWith(predicate)
+export function filterStreamWith<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  AError = never,
+  PError = never,
+>(predicate: (value: A) => E.Effect<boolean, PError, GenericQueryCtx<DataModel>>) {
+  return (
+    q: QueryStream<DataModel, A, AError>,
+  ): QueryStream<DataModel, A, SafeUnion<AError, PError>> => q.filterWith(predicate)
 }
 
 export function mapStream<
   DataModel extends GenericDataModel,
   A extends GenericStreamItem,
   B extends GenericStreamItem,
->(mapper: <TError = never>(value: A) => E.Effect<B | null, TError, GenericQueryCtx<DataModel>>) {
-  return (q: QueryStream<DataModel, A>): QueryStream<DataModel, B> => q.map(mapper)
+  AError = never,
+  BError = never,
+>(mapper: (value: A) => E.Effect<B | null, BError, GenericQueryCtx<DataModel>>) {
+  return (
+    q: QueryStream<DataModel, A, AError>,
+  ): QueryStream<DataModel, B, SafeUnion<AError, BError>> => q.map(mapper)
 }
 
 export function flatMapStream<
   DataModel extends GenericDataModel,
   A extends GenericStreamItem,
   B extends GenericStreamItem,
+  AError = never,
+  BError = never,
 >(
-  mapper: <TError = never>(
-    value: A,
-  ) => E.Effect<QueryStream<DataModel, B>, TError, GenericQueryCtx<DataModel>>,
+  mapper: (value: A) => E.Effect<QueryStream<DataModel, B>, BError, GenericQueryCtx<DataModel>>,
   mappedIndexFields: string[],
 ) {
-  return (q: QueryStream<DataModel, A>): QueryStream<DataModel, B> =>
-    q.flatMap(mapper, mappedIndexFields)
+  return (
+    q: QueryStream<DataModel, A, AError>,
+  ): QueryStream<DataModel, B, SafeUnion<AError, BError>> => q.flatMap(mapper, mappedIndexFields)
 }
 
-export function distinctStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  distinctIndexFields: string[],
-) {
-  return (q: QueryStream<DataModel, A>): QueryStream<DataModel, A> =>
+export function distinctStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(distinctIndexFields: string[]) {
+  return (q: QueryStream<DataModel, A, SError>): QueryStream<DataModel, A, SError> =>
     q.distinct(distinctIndexFields)
 }
 
@@ -101,34 +114,46 @@ export function orderStream<
   > => q.order(order)
 }
 
-export function paginateStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
-) {
-  return (q: QueryStream<DataModel, A>): E.Effect<PaginationResult<A>> =>
+export function paginateStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(paginationOpts: S.Schema.Type<typeof SPaginationOptions>) {
+  return (q: QueryStream<DataModel, A, SError>): E.Effect<PaginationResult<A>, SError> =>
     q.paginate(S.decodeSync(SPaginationOptions)(paginationOpts))
 }
 
-export function collectStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  q: QueryStream<DataModel, A>,
-): E.Effect<A[]> {
+export function collectStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(q: QueryStream<DataModel, A, SError>): E.Effect<A[], SError> {
   return q.collect()
 }
 
-export function takeFromStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  n: number,
-) {
-  return (q: QueryStream<DataModel, A>): E.Effect<A[]> => q.take(n)
+export function takeFromStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(n: number) {
+  return (q: QueryStream<DataModel, A, SError>): E.Effect<A[], SError> => q.take(n)
 }
 
-export function firstFromStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  q: QueryStream<DataModel, A>,
-): E.Effect<Option.Option<A>> {
+export function firstFromStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(q: QueryStream<DataModel, A, SError>): E.Effect<Option.Option<A>, SError> {
   return pipe(q.first(), E.map(Option.fromNullable))
 }
 
-export function uniqueFromStream<DataModel extends GenericDataModel, A extends GenericStreamItem>(
-  q: QueryStream<DataModel, A>,
-): E.Effect<Option.Option<A>, DocNotUniqueError> {
+export function uniqueFromStream<
+  DataModel extends GenericDataModel,
+  A extends GenericStreamItem,
+  SError = never,
+>(
+  q: QueryStream<DataModel, A, SError>,
+): E.Effect<Option.Option<A>, SafeUnion<DocNotUniqueError, SError>> {
   return pipe(q.unique(), E.map(Option.fromNullable))
 }
 
@@ -179,7 +204,11 @@ export class StreamDatabaseReader<Schema extends SchemaDefinition<any, boolean>>
 
 export type GenericStreamItem = NonNullable<unknown>
 
-export class QueryStream<DataModel extends GenericDataModel, T extends GenericStreamItem> {
+export class QueryStream<
+  DataModel extends GenericDataModel,
+  T extends GenericStreamItem,
+  SError = never,
+> {
   QueryCtx: QueryCtxTag<DataModel>
   queryCtx: GenericQueryCtx<DataModel>
   convexStream: ConvexQueryStream<T>
@@ -194,8 +223,8 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     this.convexStream = convexStream
   }
 
-  filterWith<TError = never>(
-    predicate: (doc: T) => E.Effect<boolean, TError, GenericQueryCtx<DataModel>>,
+  filterWith<PError = never>(
+    predicate: (doc: T) => E.Effect<boolean, PError, GenericQueryCtx<DataModel>>,
   ) {
     return new QueryStream(
       this.QueryCtx,
@@ -206,9 +235,9 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     )
   }
 
-  map<U extends GenericStreamItem, TError = never>(
-    mapper: (doc: T) => E.Effect<U | null, TError, GenericQueryCtx<DataModel>>,
-  ): QueryStream<DataModel, U> {
+  map<U extends GenericStreamItem, MError = never>(
+    mapper: (doc: T) => E.Effect<U | null, MError, GenericQueryCtx<DataModel>>,
+  ): QueryStream<DataModel, U, SafeUnion<SError, MError>> {
     return new QueryStream(
       this.QueryCtx,
       this.queryCtx,
@@ -218,10 +247,10 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     )
   }
 
-  flatMap<U extends GenericStreamItem, TError = never>(
-    mapper: (doc: T) => E.Effect<QueryStream<DataModel, U>, TError, GenericQueryCtx<DataModel>>,
+  flatMap<U extends GenericStreamItem, MError = never>(
+    mapper: (doc: T) => E.Effect<QueryStream<DataModel, U>, MError, GenericQueryCtx<DataModel>>,
     mappedIndexFields: string[],
-  ): QueryStream<DataModel, U> {
+  ): QueryStream<DataModel, U, SafeUnion<SError, MError>> {
     return new QueryStream(
       this.QueryCtx,
       this.queryCtx,
@@ -235,7 +264,7 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
     )
   }
 
-  distinct(distinctIndexFields: string[]): QueryStream<DataModel, T> {
+  distinct(distinctIndexFields: string[]): QueryStream<DataModel, T, SError> {
     return new QueryStream(
       this.QueryCtx,
       this.queryCtx,
@@ -245,25 +274,53 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
 
   paginate(
     paginationOpts: S.Schema.Type<typeof SPaginationOptions>,
-  ): E.Effect<ConvexPaginationResult<T>> {
+  ): E.Effect<ConvexPaginationResult<T>, SError> {
     return E.promise(async () =>
       this.convexStream.paginate(S.decodeSync(SPaginationOptions)(paginationOpts)),
-    )
+    ).pipe(
+      E.catchAllDefect((defect) => {
+        if (!Runtime.isFiberFailure(defect)) {
+          return E.die(defect)
+        }
+        return E.failCause(defect[Runtime.FiberFailureCauseId])
+      }),
+    ) as E.Effect<ConvexPaginationResult<T>, SError>
   }
 
-  collect(): E.Effect<T[]> {
-    return E.promise(async () => this.convexStream.collect())
+  collect(): E.Effect<T[], SError> {
+    return E.promise(async () => this.convexStream.collect()).pipe(
+      E.catchAllDefect((defect) => {
+        if (!Runtime.isFiberFailure(defect)) {
+          return E.die(defect)
+        }
+        return E.failCause(defect[Runtime.FiberFailureCauseId])
+      }),
+    ) as E.Effect<T[], SError>
   }
 
-  take(n: number): E.Effect<T[]> {
-    return E.promise(async () => this.convexStream.take(n))
+  take(n: number): E.Effect<T[], SError> {
+    return E.promise(async () => this.convexStream.take(n)).pipe(
+      E.catchAllDefect((defect) => {
+        if (!Runtime.isFiberFailure(defect)) {
+          return E.die(defect)
+        }
+        return E.failCause(defect[Runtime.FiberFailureCauseId])
+      }),
+    ) as E.Effect<T[], SError>
   }
 
-  first(): E.Effect<T | null> {
-    return E.promise(async () => this.convexStream.first())
+  first(): E.Effect<T | null, SError> {
+    return E.promise(async () => this.convexStream.first()).pipe(
+      E.catchAllDefect((defect) => {
+        if (!Runtime.isFiberFailure(defect)) {
+          return E.die(defect)
+        }
+        return E.failCause(defect[Runtime.FiberFailureCauseId])
+      }),
+    ) as E.Effect<T | null, SError>
   }
 
-  unique(): E.Effect<T | null, DocNotUniqueError, never> {
+  unique(): E.Effect<T | null, SafeUnion<DocNotUniqueError, SError>, never> {
     return this.take(2).pipe(
       E.flatMap((docs) => {
         if (docs.length > 1) {
@@ -272,7 +329,7 @@ export class QueryStream<DataModel extends GenericDataModel, T extends GenericSt
 
         return E.succeed(docs[0] ?? null)
       }),
-    )
+    ) as E.Effect<T | null, SafeUnion<DocNotUniqueError, SError>, never>
   }
 }
 
