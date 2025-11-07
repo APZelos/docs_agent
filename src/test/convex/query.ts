@@ -10,7 +10,7 @@ export const simple = query(
     const user = yield* db.query("user").first()
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
+      return yield* new DocNotFoundError({tableName: "user"})
     }
 
     return user
@@ -26,7 +26,7 @@ export const withArgs = query({
     const user = yield* db.get(args.id)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
+      return yield* new DocNotFoundError({tableName: "user"})
     }
 
     return user
@@ -42,7 +42,7 @@ export const withReturns = query({
     const user = yield* db.query("user").first()
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
+      return yield* new DocNotFoundError({tableName: "user"})
     }
 
     return {name: user.name}
@@ -61,7 +61,7 @@ export const withArgsAndReturns = query({
     const user = yield* db.get(args.id)
 
     if (!user) {
-      return yield* E.fail(new DocNotFoundError({tableName: "user"}))
+      return yield* new DocNotFoundError({tableName: "user"})
     }
 
     return {name: user.name}
