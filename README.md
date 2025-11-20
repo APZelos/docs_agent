@@ -4,7 +4,7 @@ This is a really dumb but incredibly effective way to get better coding agent re
 
 Basically you just clone the entire source repo for the library/framework as a git subtree, and then you can ask the agent to search the codebase for the answer to a question, and it works really well.
 
-## Configuration
+## OpenCode Configuration
 
 1. clone the repo
 2. copy paste the following command into opencode (while it's open in your home directory)
@@ -22,7 +22,7 @@ Execute the following steps to initialize the configurations:
 
 ### 1. Setup OpenCode Configuration
 
-Create the OpenCode directories if they don't exist and copy all files from @OPENCODE_ASSETS/:
+Create the OpenCode directories if they don't exist and copy all files from @opencode/:
 
 ```bash
 # Create directories if they don't exist
@@ -30,10 +30,10 @@ mkdir -p ~/.config/opencode/agent
 mkdir -p ~/.config/opencode/command
 
 # Copy agent files
-cp -u $AI_AGENT_HOME/doc_agent/OPENCODE_ASSETS/agent/*.md ~/.config/opencode/agent/
+cp -u $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/
 
 # Copy command files
-cp -u $AI_AGENT_HOME/doc_agent/OPENCODE_ASSETS/command/*.md ~/.config/opencode/command/
+cp -u $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/
 ```
 
 ## Notes
