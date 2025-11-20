@@ -52,7 +52,7 @@ Execute the following git subtree pull commands in sequence to update each repos
 - **Update Luxon repository**
 
     ```bash
-    git subtree pull --prefix resource/luxon https://github.com/moment/luxon.git main
+    git subtree pull --prefix resource/luxon https://github.com/moment/luxon.git master
     ```
 
 - **Update TanStack Start repository**
@@ -76,7 +76,7 @@ Execute the following git subtree pull commands in sequence to update each repos
 - **Update BaseUI repository**
 
     ```bash
-    git subtree pull --prefix resource/base-ui https://github.com/mui/base-ui.git main
+    git subtree pull --prefix resource/base-ui https://github.com/mui/base-ui.git master
     ```
 
 Each command will fetch the latest changes from the upstream repository and merge them into the local subtree. There should be no conflicts, if there are ask the user what they want to do.
