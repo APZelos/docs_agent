@@ -1,0 +1,39 @@
+# Node dependencies
+node_modules/
+.pnpm-store/
+.cache/
+
+# Build outputs
+dist/
+build/
+tsconfig.tsbuildinfo
+
+# Vite
+.vite/
+
+# Vitest
+coverage/
+.vitest/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env*.local
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Optional lockfiles (keep only pnpm-lock.yaml for pnpm projects)
+package-lock.json
+yarn.lock
+
+# Misc
+*.tgz
