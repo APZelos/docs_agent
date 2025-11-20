@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+TZ="America/New_York" LANG=en_US.utf8 npm run test

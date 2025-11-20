@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      LANG: en_US.utf8
+      LIMIT_JEST: yes
+      TZ: America/New_York
+
+    strategy:
+      matrix:
+        node-version:
+          - 18.20.8 # latest 18.x
+          - 20.19.4 # latest 20.x
+          - 22.17.1 # latest 22.x
+          - 24.4.1 # latest 22.x
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - run: npm run format-check
+      - run: npm run test
+      - run: npm run site
+      - run: bash <(curl -s https://codecov.io/bash)
