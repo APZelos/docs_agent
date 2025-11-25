@@ -430,15 +430,18 @@ export function zodToConvex<Z extends zCore.$ZodType>(
     }
     visited.add(validator);
 
-    if (validator instanceof zCore.$ZodDefault) {
-      return v.optional(zodToConvexInner(validator._zod.def.innerType));
-    }
+    const result =
+      validator instanceof zCore.$ZodDefault
+        ? v.optional(zodToConvexInner(validator._zod.def.innerType))
+        : validator instanceof zCore.$ZodPipe
+          ? zodToConvexInner(validator._zod.def.in)
+          : zodToConvexCommon(validator, zodToConvexInner);
 
-    if (validator instanceof zCore.$ZodPipe) {
-      return zodToConvexInner(validator._zod.def.in);
-    }
-
-    return zodToConvexCommon(validator, zodToConvexInner);
+    // After returning, we remove the validator from the visited set because
+    // we only want to detect circular types, not cases where part of a type
+    // is reused (e.g. `v.object({ field1: mySchema, field2: mySchema })`).
+    visited.delete(validator);
+    return result;
   }
 
   // `as any` because ConvexValidatorFromZod is defined from the behavior of zodToConvex.
@@ -517,20 +520,20 @@ export function zodOutputToConvex<Z extends zCore.$ZodType>(
     }
     visited.add(validator);
 
-    if (validator instanceof zCore.$ZodDefault) {
-      // Output: always there
-      return zodOutputToConvexInner(validator._zod.def.innerType);
-    }
+    const result =
+      validator instanceof zCore.$ZodDefault
+        ? zodOutputToConvexInner(validator._zod.def.innerType)
+        : validator instanceof zCore.$ZodPipe
+          ? zodOutputToConvexInner(validator._zod.def.out)
+          : validator instanceof zCore.$ZodTransform
+            ? v.any()
+            : zodToConvexCommon(validator, zodOutputToConvexInner);
 
-    if (validator instanceof zCore.$ZodPipe) {
-      return zodOutputToConvexInner(validator._zod.def.out);
-    }
-
-    if (validator instanceof zCore.$ZodTransform) {
-      return v.any();
-    }
-
-    return zodToConvexCommon(validator, zodOutputToConvexInner);
+    // After returning, we remove the validator from the visited set because
+    // we only want to detect circular types, not cases where part of a type
+    // is reused (e.g. `v.object({ field1: mySchema, field2: mySchema })`).
+    visited.delete(validator);
+    return result;
   }
 
   // `as any` because ConvexValidatorFromZodOutput is defined from the behavior of zodOutputToConvex.
@@ -877,7 +880,7 @@ function customFnBuilder(
             extra,
           );
           const rawArgs = pick(allArgs, Object.keys(argsValidator));
-          const parsed = z.object(argsValidator).safeParse(rawArgs);
+          const parsed = await z.object(argsValidator).safeParseAsync(rawArgs);
           if (!parsed.success) {
             throw new ConvexError({
               ZodError: JSON.parse(
@@ -891,7 +894,9 @@ function customFnBuilder(
           const ret = await handler(finalCtx, finalArgs);
           // We don't catch the error here. It's a developer error and we
           // don't want to risk exposing the unexpected value to the client.
-          const result = returns ? returns.parse(ret) : ret;
+          const result = returns
+            ? await returns.parseAsync(ret === undefined ? null : ret)
+            : ret;
           if (added.onSuccess) {
             await added.onSuccess({ ctx, args, result });
           }
@@ -914,7 +919,9 @@ function customFnBuilder(
         const ret = await handler(finalCtx, finalArgs);
         // We don't catch the error here. It's a developer error and we
         // don't want to risk exposing the unexpected value to the client.
-        const result = returns ? returns.parse(ret) : ret;
+        const result = returns
+          ? await returns.parseAsync(ret === undefined ? null : ret)
+          : ret;
         if (added.onSuccess) {
           await added.onSuccess({ ctx, args, result });
         }
@@ -953,16 +960,19 @@ type ReturnValueOutput<
 > = [ReturnsValidator] extends [zCore.$ZodType]
   ? Returns<zCore.output<ReturnsValidator>>
   : [ReturnsValidator] extends [ZodFields]
-    ? Returns<zCore.output<zCore.$ZodObject<ReturnsValidator>>>
+    ? Returns<zCore.output<zCore.$ZodObject<ReturnsValidator, zCore.$strict>>>
     : any;
 
 // The args before they've been validated: passed from the client
 type ArgsInput<ArgsValidator extends ZodFields | zCore.$ZodObject<any> | void> =
   [ArgsValidator] extends [zCore.$ZodObject<any>]
     ? [zCore.input<ArgsValidator>]
-    : [ArgsValidator] extends [ZodFields]
-      ? [zCore.input<zCore.$ZodObject<ArgsValidator>>]
-      : OneArgArray;
+    : ArgsValidator extends Record<string, never>
+      ? // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+        [{}]
+      : [ArgsValidator] extends [Record<string, z.ZodTypeAny>]
+        ? [zCore.input<zCore.$ZodObject<ArgsValidator, zCore.$strict>>]
+        : OneArgArray;
 
 // The args after they've been validated: passed to the handler
 type ArgsOutput<
