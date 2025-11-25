@@ -11,8 +11,6 @@ Basically you just clone the entire source repo for the library/framework as a g
 1. clone the repo
 2. copy paste the following command into opencode (while it's open in your home directory)
 
-And now you have slash commands for these libraries/frameworks in opencode. as well as a special agent in opencode that can search the codebase for the answer to a question.
-
 ````md
 # Init Command
 
@@ -49,8 +47,6 @@ cp -u $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/
 
 1. clone the repo
 2. copy paste the following command into claude code (while it's open in your home directory)
-
-And now you have slash commands for these libraries/frameworks in claude code, as well as a special agent that can search the codebase for the answer to a question.
 
 ````md
 # Init Command
@@ -97,12 +93,12 @@ cp -u $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/
 ### Using the Doc Agent
 
 ```
-doc-agent: Compare TanStack Query vs Convex for state management
-Use doc-agent to explain how Effect and Convex work together
-doc-agent: Should I use Luxon or native Date for timezone handling?
+docs: Compare TanStack Query vs Convex for state management
+Use docs to explain how Effect and Convex work together
+docs: Should I use Luxon or native Date for timezone handling?
 ```
 
-_Note: In Claude Code, use `doc-agent:` prefix. In OpenCode, you can also use `Use doc-agent`._
+_Note: In Claude Code, use `docs:` prefix. In OpenCode, you can also use `Use docs`._
 
 ### Active Development
 

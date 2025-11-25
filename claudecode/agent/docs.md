@@ -1,5 +1,5 @@
 ---
-name: doc-agent
+name: docs
 description: Uses real source codebases to provide more accurate and up-to-date info on different technologies, libraries, frameworks, or tools
 tools: read,bash,grep,glob,task
 model: sonnet
