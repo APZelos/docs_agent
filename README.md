@@ -30,15 +30,15 @@ mkdir -p ~/.config/opencode/agent
 mkdir -p ~/.config/opencode/command
 
 # Copy agent files
-cp -u $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/
+cp -u $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/
 
 # Copy command files
-cp -u $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/
+cp -u $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/
 ```
 
 ## Notes
 
-- The `cp -u` flag ensures existing files are only overwritten if the source is newer
+- The `cp -u` flag ensures existing files are only overwritten if the source is newer (fallback to regular `cp` if `-u` is not supported on macOS)
 - All necessary parent directories will be created if they don't already exist
 - After setup, users can run OpenCode commands from their respective directories
 ````
@@ -67,15 +67,15 @@ mkdir -p ~/.claude/agents
 mkdir -p ~/.claude/commands
 
 # Copy agent files
-cp -u $AI_AGENT_HOME/doc_agent/claudecode/agent/*.md ~/.claude/agents/
+cp -u $AI_AGENT_HOME/doc_agent/claudecode/agent/*.md ~/.claude/agents/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/claudecode/agent/*.md ~/.claude/agents/
 
 # Copy command files
-cp -u $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/
+cp -u $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/
 ```
 
 ## Notes
 
-- The `cp -u` flag ensures existing files are only overwritten if the source is newer
+- The `cp -u` flag ensures existing files are only overwritten if the source is newer (fallback to regular `cp` if `-u` is not supported on macOS)
 - All necessary parent directories will be created if they don't already exist
 - After setup, users can run Claude Code commands from their respective directories
 ````
