@@ -88,8 +88,14 @@ export const handleServerAction = async ({
           if (typeof serializedContext === 'string') {
             try {
               const parsedContext = JSON.parse(serializedContext)
-              if (typeof parsedContext === 'object' && parsedContext) {
-                params.context = { ...context, ...parsedContext }
+              const deserializedContext = fromJSON(parsedContext, {
+                plugins: serovalPlugins,
+              })
+              if (
+                typeof deserializedContext === 'object' &&
+                deserializedContext
+              ) {
+                params.context = { ...context, ...deserializedContext }
               }
             } catch {}
           }
@@ -215,8 +221,8 @@ export const handleServerAction = async ({
           return new Response(
             nonStreamingBody ? JSON.stringify(nonStreamingBody) : undefined,
             {
-              status: response?.status,
-              statusText: response?.statusText,
+              status: response.status,
+              statusText: response.statusText,
               headers: {
                 'Content-Type': 'application/json',
                 [X_TSS_SERIALIZED]: 'true',
@@ -245,8 +251,8 @@ export const handleServerAction = async ({
           },
         })
         return new Response(stream, {
-          status: response?.status,
-          statusText: response?.statusText,
+          status: response.status,
+          statusText: response.statusText,
           headers: {
             'Content-Type': 'application/x-ndjson',
             [X_TSS_SERIALIZED]: 'true',
@@ -255,8 +261,8 @@ export const handleServerAction = async ({
       }
 
       return new Response(undefined, {
-        status: response?.status,
-        statusText: response?.statusText,
+        status: response.status,
+        statusText: response.statusText,
       })
     } catch (error: any) {
       if (error instanceof Response) {
@@ -295,8 +301,8 @@ export const handleServerAction = async ({
       )
       const response = getResponse()
       return new Response(serializedError, {
-        status: response?.status ?? 500,
-        statusText: response?.statusText,
+        status: response.status ?? 500,
+        statusText: response.statusText,
         headers: {
           'Content-Type': 'application/json',
           [X_TSS_SERIALIZED]: 'true',
