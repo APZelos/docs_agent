@@ -73,10 +73,40 @@ Execute the following git subtree pull commands in sequence to update each repos
     git subtree pull --prefix resource/tanstack-query https://github.com/TanStack/query.git main
     ```
 
+- **Update TanStack Table repository**
+
+    ```bash
+    git subtree pull --prefix  resource/tanstack-table https://github.com/TanStack/table.git main
+    ```
+
 - **Update BaseUI repository**
 
     ```bash
     git subtree pull --prefix resource/base-ui https://github.com/mui/base-ui.git master
     ```
 
-Each command will fetch the latest changes from the upstream repository and merge them into the local subtree. There should be no conflicts, if there are ask the user what they want to do.
+- **Update Twilio Voice React Native repository**
+
+    ```bash
+    git subtree pull --prefix resource/twilio-voice-react-native https://github.com/twilio/twilio-voice-react-native.git main
+    ```
+
+- **Update React Aria repository**
+
+    ```bash
+    git subtree pull --prefix resource/react-aria https://github.com/adobe/react-spectrum.git main
+    ```
+
+- **Update Zod repository**
+
+    ```bash
+    git subtree pull --prefix resource/zod https://github.com/colinhacks/zod.git main
+    ```
+
+- **Update React Hook Form repository**
+
+    ```bash
+    git subtree pull --prefix resource/react-hook-form https://github.com/react-hook-form/react-hook-form.git main
+    ```
+
+    Each command will fetch the latest changes from the upstream repository and merge them into the local subtree. There should be no conflicts, if there are ask the user what they want to do.
