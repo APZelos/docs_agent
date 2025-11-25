@@ -56,6 +56,11 @@ export * as EntityProxyServer from "./EntityProxyServer.js"
 /**
  * @since 1.0.0
  */
+export * as EntityResource from "./EntityResource.js"
+
+/**
+ * @since 1.0.0
+ */
 export * as EntityType from "./EntityType.js"
 
 /**
@@ -67,6 +72,11 @@ export * as Envelope from "./Envelope.js"
  * @since 1.0.0
  */
 export * as HttpRunner from "./HttpRunner.js"
+
+/**
+ * @since 1.0.0
+ */
+export * as K8sHttpClient from "./K8sHttpClient.js"
 
 /**
  * @since 1.0.0

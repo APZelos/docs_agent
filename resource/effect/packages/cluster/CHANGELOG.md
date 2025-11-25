@@ -1,5 +1,85 @@
 # @effect/cluster
 
+## 0.53.5
+
+### Patch Changes
+
+- [#5785](https://github.com/Effect-TS/effect/pull/5785) [`47bf3d2`](https://github.com/Effect-TS/effect/commit/47bf3d2324ab914f6a33e95cda7ff2aac01519a6) Thanks @tim-smart! - immediately set entity keep alive in EntityResource
+
+## 0.53.4
+
+### Patch Changes
+
+- [#5783](https://github.com/Effect-TS/effect/pull/5783) [`8b879fb`](https://github.com/Effect-TS/effect/commit/8b879fb3b886a7262c9c8d9b2050cc128c5eb6f8) Thanks @tim-smart! - add EntityResource.makeK8sPod
+
+## 0.53.3
+
+### Patch Changes
+
+- [#5781](https://github.com/Effect-TS/effect/pull/5781) [`df69cb5`](https://github.com/Effect-TS/effect/commit/df69cb5ed590045b18d1527162518ea0197ddd2e) Thanks @tim-smart! - provide seperate close scope to EntityResource via context
+
+## 0.53.2
+
+### Patch Changes
+
+- [#5778](https://github.com/Effect-TS/effect/pull/5778) [`af7916a`](https://github.com/Effect-TS/effect/commit/af7916a3f00acdfc8ce451eabd3f5fb02914d0bb) Thanks @tim-smart! - fix postgres unprocessed message ordering
+
+- [#5778](https://github.com/Effect-TS/effect/pull/5778) [`af7916a`](https://github.com/Effect-TS/effect/commit/af7916a3f00acdfc8ce451eabd3f5fb02914d0bb) Thanks @tim-smart! - add @effect/cluster EntityResource module
+
+  A `EntityResource` is a resource that can be acquired inside a cluster
+  entity, which will keep the entity alive even across restarts.
+
+  The resource will only be fully released when the idle time to live is
+  reached, or when the `close` effect is called.
+
+  By default, the `idleTimeToLive` is infinite, meaning the resource will only
+  be released when `close` is called.
+
+  ```ts
+  import { Entity, EntityResource } from "@effect/cluster"
+  import { Rpc } from "@effect/rpc"
+  import { Effect } from "effect"
+
+  const EntityA = Entity.make("EntityA", [Rpc.make("method")])
+
+  export const EntityALayer = EntityA.toLayer(
+    Effect.gen(function* () {
+      // When the entity receives a message, it will first acquire the resource
+      //
+      // If the entity restarts, the resource will be re-acquired in the new
+      // instance.
+      //
+      // It will only be released when the idle TTL is reached, or when the
+      // `close` effect is called.
+      const resource = yield* EntityResource.make({
+        acquire: Effect.acquireRelease(
+          Effect.logInfo("Acquiring Entity resource"),
+          () => Effect.logInfo("Releasing Entity resource")
+        ),
+        // If the resource is not used for 10 minutes, it will be released and the
+        // entity will be allowed to shut down.
+        idleTimeToLive: "10 minutes"
+      })
+
+      return EntityA.of({
+        method: Effect.fnUntraced(function* () {
+          yield* Effect.logInfo("EntityA.method called")
+          // To access the resource, use `resource.get` inside an Effect.scoped
+          yield* resource.get
+        }, Effect.scoped)
+      })
+    }),
+    {
+      // After the resource is released, if the entity is not used for 1 minute,
+      // the entity will be shut down.
+      maxIdleTime: "1 minute"
+    }
+  )
+  ```
+
+- Updated dependencies [[`af7916a`](https://github.com/Effect-TS/effect/commit/af7916a3f00acdfc8ce451eabd3f5fb02914d0bb)]:
+  - effect@3.19.6
+
 ## 0.53.1
 
 ### Patch Changes
