@@ -2,7 +2,7 @@
 description: Get up to date information about React Aria Components
 ---
 
-You have access to the React Aria Components documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/react-aria`.
+You have access to the React Aria Components documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/react-aria`.
 
 Use this codebase to provide accurate, up-to-date information about React Aria Components and how to build accessible, high quality UI components for your application or design system.
 

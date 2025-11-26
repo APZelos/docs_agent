@@ -2,7 +2,7 @@
 description: Get up to date information about BaseUI
 ---
 
-You have access to the BaseUI documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/base-ui`.
+You have access to the BaseUI documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/base-ui`.
 
 Use this codebase to provide accurate, up-to-date information about BaseUI and how to build accessible React component libraries.
 

@@ -2,7 +2,7 @@
 description: Get up to date information about TanStack Query
 ---
 
-You have access to the TanStack Query documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/tanstack-query`.
+You have access to the TanStack Query documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/tanstack-query`.
 
 Use this codebase to provide accurate, up-to-date information about TanStack Query and how to manage server state in React applications.
 

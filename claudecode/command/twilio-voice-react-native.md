@@ -2,7 +2,7 @@
 description: Get up to date information about Twilio Voice React Native
 ---
 
-You have access to the Twilio Voice React Native documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/twilio-voice-react-native`.
+You have access to the Twilio Voice React Native documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/twilio-voice-react-native`.
 
 Use this codebase to provide accurate, up-to-date information about Twilio Voice React Native and how to implement voice calls.
 

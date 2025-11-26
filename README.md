@@ -30,10 +30,10 @@ mkdir -p ~/.config/opencode/agent
 mkdir -p ~/.config/opencode/command
 
 # Copy agent files
-cp -u $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/opencode/agent/*.md ~/.config/opencode/agent/
+cp -u $AI_AGENT_HOME/docs_agent/opencode/agent/*.md ~/.config/opencode/agent/ 2>/dev/null || cp $AI_AGENT_HOME/docs_agent/opencode/agent/*.md ~/.config/opencode/agent/
 
 # Copy command files
-cp -u $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/opencode/command/*.md ~/.config/opencode/command/
+cp -u $AI_AGENT_HOME/docs_agent/opencode/command/*.md ~/.config/opencode/command/ 2>/dev/null || cp $AI_AGENT_HOME/docs_agent/opencode/command/*.md ~/.config/opencode/command/
 ```
 
 ## Notes
@@ -67,10 +67,10 @@ mkdir -p ~/.claude/agents
 mkdir -p ~/.claude/commands
 
 # Copy agent files
-cp -u $AI_AGENT_HOME/doc_agent/claudecode/agent/*.md ~/.claude/agents/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/claudecode/agent/*.md ~/.claude/agents/
+cp -u $AI_AGENT_HOME/docs_agent/claudecode/agent/*.md ~/.claude/agents/ 2>/dev/null || cp $AI_AGENT_HOME/docs_agent/claudecode/agent/*.md ~/.claude/agents/
 
 # Copy command files
-cp -u $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/ 2>/dev/null || cp $AI_AGENT_HOME/doc_agent/claudecode/command/*.md ~/.claude/commands/
+cp -u $AI_AGENT_HOME/docs_agent/claudecode/command/*.md ~/.claude/commands/ 2>/dev/null || cp $AI_AGENT_HOME/docs_agent/claudecode/command/*.md ~/.claude/commands/
 ```
 
 ## Notes

@@ -2,7 +2,7 @@
 description: Get up to date information about TanStack Table
 ---
 
-You have access to the TanStack Table documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/tanstack-table`.
+You have access to the TanStack Table documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/tanstack-table`.
 
 Use this codebase to provide accurate, up-to-date information about TanStack Table and how to build powerful datagrids.
 

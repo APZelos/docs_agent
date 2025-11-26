@@ -2,7 +2,7 @@
 description: Get up to date information about Luxon
 ---
 
-You have access to the Luxon documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/luxon`.
+You have access to the Luxon documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/luxon`.
 
 Use this codebase to provide accurate, up-to-date information about Luxon and how to work with dates, times, and durations in JavaScript.
 

@@ -2,7 +2,7 @@
 description: Get up to date information about Zod
 ---
 
-You have access to the Zod documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/zod`.
+You have access to the Zod documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/zod`.
 
 Use this codebase to provide accurate, up-to-date information about Zod and to add TypeScript-first schema validation with static type inference.
 

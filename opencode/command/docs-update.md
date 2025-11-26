@@ -7,7 +7,7 @@ agent: build
 
 This command updates all the linked codebases (svelte.dev, effect, and neverthrow) to their latest versions by pulling fresh changes from the upstream repositories.
 
-You will need to run the following commands in this directory: `$AI_AGENT_HOME/doc_agent`
+You will need to run the following commands in this directory: `$AI_AGENT_HOME/docs_agent`
 
 ## Instructions
 

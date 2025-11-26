@@ -2,7 +2,7 @@
 description: Get up to date information about React Hook Form
 ---
 
-You have access to the React Hook Form documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/react-hook-form`.
+You have access to the React Hook Form documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/react-hook-form`.
 
 Use this codebase to provide accurate, up-to-date information about React Hook Form and how to build performant, flexible and extensible forms with easy-to-use validation.
 

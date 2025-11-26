@@ -2,7 +2,7 @@
 description: Get up to date information about WorkOS TanStack Start
 ---
 
-You have access to the WorkOS TanStack Start documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/workos-tanstack-start`.
+You have access to the WorkOS TanStack Start documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/workos-tanstack-start`.
 
 Use this codebase to provide accurate, up-to-date information about WorkOS TanStack Start and how to integrate WorkOS authentication with TanStack Start.
 

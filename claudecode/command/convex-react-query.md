@@ -2,7 +2,7 @@
 description: Get up to date information about Convex React Query
 ---
 
-You have access to the Convex React Query documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/convex-react-query`.
+You have access to the Convex React Query documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/convex-react-query`.
 
 Use this codebase to provide accurate, up-to-date information about Convex React Query and how to integrate Convex with React Query for caching and state management.
 

@@ -2,7 +2,7 @@
 description: Get up to date information about Convex Helpers
 ---
 
-You have access to the Convex documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/convex-helpers`.
+You have access to the Convex documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/convex-helpers`.
 
 Use this codebase to provide accurate, up-to-date information about Convex Helpers and patterns for more advanced uses of Convex.
 

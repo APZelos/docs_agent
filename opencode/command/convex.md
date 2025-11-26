@@ -2,7 +2,7 @@
 description: Get up to date information about Convex
 ---
 
-You have access to the Convex documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/convex`.
+You have access to the Convex documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/convex`.
 
 Use this codebase to provide accurate, up-to-date information about Convex and how to build reactive backends.
 

@@ -2,7 +2,7 @@
 description: Get up to date information about TanStack Start
 ---
 
-You have access to the TanStack Start documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/tanstack-start`.
+You have access to the TanStack Start documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/tanstack-start`.
 
 Use this codebase to provide accurate, up-to-date information about TanStack Start and how to build full-stack React applications with file-based routing.
 

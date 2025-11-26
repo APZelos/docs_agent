@@ -2,7 +2,7 @@
 description: Get up to date information about Effect
 ---
 
-You have access to the Effect documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/effect`.
+You have access to the Effect documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/effect`.
 
 Use this codebase to provide accurate, up-to-date information about Effect.ts and functional programming patterns.
 

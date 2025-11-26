@@ -2,7 +2,7 @@
 description: Get up to date information about Concave
 ---
 
-You have access to the Concave documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/concave`.
+You have access to the Concave documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/concave`.
 
 Use this codebase to provide accurate, up-to-date information about Concave and how to build convex backends using effect.
 

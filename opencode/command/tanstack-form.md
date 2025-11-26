@@ -2,7 +2,7 @@
 description: Get up to date information about TanStack Form
 ---
 
-You have access to the TanStack Form documentation and source code at `$AI_AGENT_HOME/doc_agent/resource/tanstack-form`.
+You have access to the TanStack Form documentation and source code at `$AI_AGENT_HOME/docs_agent/resource/tanstack-form`.
 
 Use this codebase to provide accurate, up-to-date information about TanStack Form and how to build type-safe forms in React applications.
 
