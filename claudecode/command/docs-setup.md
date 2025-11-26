@@ -38,20 +38,20 @@ ls ~/.claude/commands/
 
 You should see:
 - Agent files: `docs.md`
-- Command files: All library-specific commands (e.g., `convex.md`, `tanstack-query.md`, etc.), plus `docs-add.md`, `docs-update.md`, and `docs-setup.md`
+- Command files: All library-specific commands (e.g., `docs-convex.md`, `docs-tanstack-query.md`, etc.), plus `docs-add.md`, `docs-update.md`, and `docs-setup.md`
 
 ## Notes
 
 - The `cp -u` flag ensures existing files are only overwritten if the source is newer (fallback to regular `cp` if `-u` is not supported on macOS)
 - All necessary parent directories will be created if they don't already exist
-- After setup, you can use all Claude Code documentation commands (e.g., `/convex`, `/tanstack-query`, etc.)
+- After setup, you can use all Claude Code documentation commands (e.g., `/docs-convex`, `/docs-tanstack-query`, etc.)
 - Run this command anytime there are updates to the documentation agents or commands
 
 ## What This Sets Up
 
 This command installs:
 - **Documentation Agent**: Allows you to use `docs:` prefix to query multiple documentation sources
-- **Library Commands**: Individual slash commands for each library (e.g., `/convex`, `/effect`, `/luxon`, etc.)
+- **Library Commands**: Individual slash commands for each library (e.g., `/docs-convex`, `/docs-effect`, `/docs-luxon`, etc.)
 - **Utility Commands**: 
   - `/docs-add`: Add new documentation sources
   - `/docs-update`: Update all documentation repositories

@@ -11,7 +11,7 @@ This command adds a new library/framework documentation source to the doc agents
 
 Collect the following information from the user if not already provided:
 
-1. **Command Name**: The slash command name (e.g., `react-query`, `prisma`) - should be lowercase with hyphens
+1. **Command Name**: The slash command name (e.g., `docs-react-query`, `docs-prisma`) - should be lowercase with hyphens and prefixed with `docs-`
 2. **Display Name**: Human-readable name (e.g., "React Query", "Prisma ORM")
 3. **GitHub URL**: Full GitHub repository URL (e.g., `https://github.com/TanStack/query`)
 4. **Main Branch**: The default branch name (usually `main` or `master`)
@@ -50,7 +50,7 @@ Based on what you find, note the documentation paths for the special instruction
 
 ### Step 3: Create Command Files
 
-Create the command file for **OpenCode** at `opencode/command/{command-name}.md`:
+Create the command file for **OpenCode** at `opencode/command/docs-{command-name}.md`:
 
 ```md
 ---
@@ -67,7 +67,7 @@ Use this codebase to provide accurate, up-to-date information about {Display Nam
 {special-instructions-if-any}
 ```
 
-Create the command file for **Claude Code** at `claudecode/command/{command-name}.md` with the same content.
+Create the command file for **Claude Code** at `claudecode/command/docs-{command-name}.md` with the same content.
 
 ### Step 4: Update Agent Files
 
@@ -117,7 +117,7 @@ Based on the documentation structure found in Step 2, create appropriate special
 ### Step 7: Verify Setup
 
 1. Confirm the subtree was added: `ls resource/{command-name}/`
-2. Confirm command files exist in both `opencode/command/` and `claudecode/command/`
+2. Confirm command files exist in both `opencode/command/docs-{command-name}.md` and `claudecode/command/docs-{command-name}.md`
 3. Confirm agent files were updated in both `opencode/agent/` and `claudecode/agent/`
 4. Confirm docs-update.md was updated in both locations
 
@@ -125,7 +125,7 @@ Based on the documentation structure found in Step 2, create appropriate special
 
 For adding "Drizzle ORM" with GitHub URL `https://github.com/drizzle-team/drizzle-orm`:
 
-1. Command: `drizzle`
+1. Command: `docs-drizzle`
 2. Display Name: `Drizzle ORM`  
 3. GitHub: `https://github.com/drizzle-team/drizzle-orm`
 4. Branch: `main`
@@ -133,6 +133,6 @@ For adding "Drizzle ORM" with GitHub URL `https://github.com/drizzle-team/drizzl
 
 Would result in:
 - Subtree at `resource/drizzle/`
-- Commands at `opencode/command/drizzle.md` and `claudecode/command/drizzle.md`
+- Commands at `opencode/command/docs-drizzle.md` and `claudecode/command/docs-drizzle.md`
 - Updated agent files with Drizzle in the list
 - Special instructions based on discovered docs structure
