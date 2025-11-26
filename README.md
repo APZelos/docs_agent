@@ -8,13 +8,15 @@ Basically you just clone the entire source repo for the library/framework as a g
 
 ## OpenCode Configuration
 
-1. clone the repo
-2. copy paste the following command into opencode (while it's open in your home directory)
+### Initial Setup
+
+1. Clone the repo
+2. Copy and paste the following command into OpenCode (while it's open in your home directory):
 
 ````md
 # Init Command
 
-This command sets up opencode commands and agents on the user's machine. It works as an upsert operation - updating existing files or creating new ones as needed.
+This command sets up OpenCode commands and agents on the user's machine. It works as an upsert operation - updating existing files or creating new ones as needed.
 
 ## Instructions
 
@@ -43,10 +45,22 @@ cp -u $AI_AGENT_HOME/docs_agent/opencode/command/*.md ~/.config/opencode/command
 - After setup, users can run OpenCode commands from their respective directories
 ````
 
+### Updating After Initial Setup
+
+Once you've completed the initial setup, you can easily update to the latest agents and commands by running:
+
+```
+/docs-setup
+```
+
+This command will automatically update all documentation agents and commands without needing to copy the prompt again.
+
 ## Claude Code Configuration
 
-1. clone the repo
-2. copy paste the following command into claude code (while it's open in your home directory)
+### Initial Setup
+
+1. Clone the repo
+2. Copy and paste the following command into Claude Code (while it's open in your home directory):
 
 ````md
 # Init Command
@@ -79,6 +93,16 @@ cp -u $AI_AGENT_HOME/docs_agent/claudecode/command/*.md ~/.claude/commands/ 2>/d
 - All necessary parent directories will be created if they don't already exist
 - After setup, users can run Claude Code commands from their respective directories
 ````
+
+### Updating After Initial Setup
+
+Once you've completed the initial setup, you can easily update to the latest agents and commands by running:
+
+```
+/docs-setup
+```
+
+This command will automatically update all documentation agents and commands without needing to copy the prompt again.
 
 ## Usage Examples
 
@@ -113,3 +137,30 @@ _Note: In Claude Code, use `docs:` prefix. In OpenCode, you can also use `Use do
 ```
 /docs-update
 ```
+
+## Adding New Documentation Sources
+
+To add a new library/framework documentation source, use the `/docs-add` command:
+
+**OpenCode:**
+```
+/docs-add
+```
+
+**Claude Code:**
+```
+/docs-add
+```
+
+The command will guide you through the process of:
+1. Adding the library's GitHub repository as a git subtree
+2. Creating command files for both OpenCode and Claude Code
+3. Updating the docs agent configuration
+4. Setting up automatic updates
+
+You'll need to provide:
+- Command name (e.g., `react-query`, `prisma`)
+- Display name (e.g., "React Query", "Prisma ORM")
+- GitHub URL (e.g., `https://github.com/TanStack/query`)
+- Main branch (usually `main` or `master`)
+- Short description of what the library does
