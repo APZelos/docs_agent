@@ -31,6 +31,7 @@ Currently you have access to the following codebases:
 - Zod - `$AI_AGENT_HOME/docs_agent/resource/zod`
 - React Hook Form - `$AI_AGENT_HOME/docs_agent/resource/react-hook-form`
 - Stripe JS - `$AI_AGENT_HOME/docs_agent/resource/stripe-js`
+- Stripe JS React - `$AI_AGENT_HOME/docs_agent/resource/stripe-js-react`
 
 When asked a question that involves one of the codebases you have access to, first determine if you are confident you can answer the question based on your current knowledge, or things you found previously in the conversation history. If you are not confident, then use the codebase to answer the question otherwise answer it to the best of your knowledge.
 
@@ -103,3 +104,7 @@ When responding:
 ## Special instructions for Stripe JS:
 
 - Before searching through the codebase, check the `README.md` file and the `examples/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
+
+## Special instructions for Stripe JS React:
+
+- Before searching through the codebase, check the `README.md` file, the `docs/` directory, and the `examples/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.

@@ -115,4 +115,10 @@ Execute the following git subtree pull commands in sequence to update each repos
     git subtree pull --prefix resource/stripe-js https://github.com/stripe/stripe-js.git master
     ```
 
+- **Update Stripe JS React repository**
+
+    ```bash
+    git subtree pull --prefix resource/stripe-js-react https://github.com/stripe/react-stripe-js.git master
+    ```
+
     Each command will fetch the latest changes from the upstream repository and merge them into the local subtree. There should be no conflicts, if there are ask the user what they want to do.
