@@ -109,4 +109,10 @@ Execute the following git subtree pull commands in sequence to update each repos
     git subtree pull --prefix resource/react-hook-form https://github.com/react-hook-form/react-hook-form.git main
     ```
 
+- **Update Stripe JS repository**
+
+    ```bash
+    git subtree pull --prefix resource/stripe-js https://github.com/stripe/stripe-js.git master
+    ```
+
     Each command will fetch the latest changes from the upstream repository and merge them into the local subtree. There should be no conflicts, if there are ask the user what they want to do.
