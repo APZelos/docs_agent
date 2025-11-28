@@ -6,6 +6,43 @@ This is a really dumb but incredibly effective way to get better coding agent re
 
 Basically you just clone the entire source repo for the library/framework as a git subtree, and then you can ask the agent to search the codebase for the answer to a question, and it works really well.
 
+## Prerequisites
+
+Before setting up the documentation agents, you need to export the `AI_AGENT_HOME` environment variable. This variable should point to the directory where you cloned this repository.
+
+### Setting the Environment Variable
+
+Add the export command to your shell configuration file:
+
+**Bash** (`~/.bashrc` or `~/.bash_profile`):
+
+```bash
+echo 'export AI_AGENT_HOME="/path/to/where/you/cloned"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Zsh** (`~/.zshrc`):
+
+```bash
+echo 'export AI_AGENT_HOME="/path/to/where/you/cloned"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**Fish** (`~/.config/fish/config.fish`):
+
+```fish
+echo 'set -gx AI_AGENT_HOME "/path/to/where/you/cloned"' >> ~/.config/fish/config.fish
+source ~/.config/fish/config.fish
+```
+
+> **Note:** Replace `/path/to/where/you/cloned` with the actual path. For example, if you cloned to `/Users/john/Developer`, then `AI_AGENT_HOME` should be `/Users/john/Developer` (the parent directory containing `docs_agent`).
+
+To verify the variable is set correctly:
+
+```bash
+echo $AI_AGENT_HOME
+```
+
 ## OpenCode Configuration
 
 ### Initial Setup
@@ -143,22 +180,26 @@ _Note: In Claude Code, use `docs:` prefix. In OpenCode, you can also use `Use do
 To add a new library/framework documentation source, use the `/docs-add` command:
 
 **OpenCode:**
+
 ```
 /docs-add
 ```
 
 **Claude Code:**
+
 ```
 /docs-add
 ```
 
 The command will guide you through the process of:
+
 1. Adding the library's GitHub repository as a git subtree
 2. Creating command files for both OpenCode and Claude Code
 3. Updating the docs agent configuration
 4. Setting up automatic updates
 
 You'll need to provide:
+
 - Command name (e.g., `react-query`, `prisma`)
 - Display name (e.g., "React Query", "Prisma ORM")
 - GitHub URL (e.g., `https://github.com/TanStack/query`)
