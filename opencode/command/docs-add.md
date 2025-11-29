@@ -64,7 +64,7 @@ Use this codebase to provide accurate, up-to-date information about {Display Nam
 ## Instructions
 
 - When you are searching the codebase, be very careful that you do not read too much at once. Only read a small amount at a time as you're searching, avoid reading dozens of files at once...
-{special-instructions-if-any}
+  {special-instructions-if-any}
 ```
 
 Create the command file for **Claude Code** at `claudecode/command/docs-{command-name}.md` with the same content.
@@ -73,16 +73,19 @@ Create the command file for **Claude Code** at `claudecode/command/docs-{command
 
 Add the new library to the codebase list in **both** agent files:
 
-**OpenCode** (`opencode/agent/docs.md`):
-- Add to the "Currently you have access to the following codebases:" list:
-  ```
-  - {Display Name} - `$AI_AGENT_HOME/docs_agent/resource/{command-name}`
-  ```
+**OpenCode** (`opencode/agent/docs.md` and `opencode/agent/docs-plan.md`):
 
-**Claude Code** (`claudecode/agent/docs.md`):
+- Add to the "Currently you have access to the following codebases:" list:
+    ```
+    - {Display Name} - `$AI_AGENT_HOME/docs_agent/resource/{command-name}`
+    ```
+
+**Claude Code** (`claudecode/agent/docs.md` and `claudecode/agent/docs-plan.md`):
+
 - Add the same entry to the codebases list
 
 If special instructions are needed (based on Step 2), add a new section to both agent files:
+
 ```md
 ## Special instructions for {Display Name}:
 
@@ -93,26 +96,26 @@ If special instructions are needed (based on Step 2), add a new section to both 
 
 Add the update command to **both** `opencode/command/docs-update.md` and `claudecode/command/docs-update.md`:
 
-```md
+````md
 - **Update {Display Name} repository**
 
     ```bash
     git subtree pull --prefix resource/{command-name} {github-url}.git {branch}
     ```
-```
+````
 
 ### Step 6: Determine Special Instructions
 
 Based on the documentation structure found in Step 2, create appropriate special instructions:
 
-| If you find... | Special instruction template |
-|---|---|
-| `docs/` directory | "Generally just search the docs for the answer to the question, don't search the codebase unless you absolutely have to" |
-| `README.md` only | "Before searching through the codebase, check the `README.md` file to see if you can answer..." |
-| `examples/` directory | "Before searching through the codebase, check the `examples/` directory to see if you can answer..." |
-| `packages/*/docs/` | "Before searching through the codebase, check the `packages/{package-name}/docs/` directory..." |
-| Multiple sources | List all: "check the `docs/` directory, `README.md`, and `examples/`..." |
-| Unusual structure | Describe the specific path where docs are located |
+| If you find...        | Special instruction template                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `docs/` directory     | "Generally just search the docs for the answer to the question, don't search the codebase unless you absolutely have to" |
+| `README.md` only      | "Before searching through the codebase, check the `README.md` file to see if you can answer..."                          |
+| `examples/` directory | "Before searching through the codebase, check the `examples/` directory to see if you can answer..."                     |
+| `packages/*/docs/`    | "Before searching through the codebase, check the `packages/{package-name}/docs/` directory..."                          |
+| Multiple sources      | List all: "check the `docs/` directory, `README.md`, and `examples/`..."                                                 |
+| Unusual structure     | Describe the specific path where docs are located                                                                        |
 
 ### Step 7: Verify Setup
 
@@ -126,12 +129,13 @@ Based on the documentation structure found in Step 2, create appropriate special
 For adding "Drizzle ORM" with GitHub URL `https://github.com/drizzle-team/drizzle-orm`:
 
 1. Command: `docs-drizzle`
-2. Display Name: `Drizzle ORM`  
+2. Display Name: `Drizzle ORM`
 3. GitHub: `https://github.com/drizzle-team/drizzle-orm`
 4. Branch: `main`
 5. Description: "type-safe SQL ORM for TypeScript"
 
 Would result in:
+
 - Subtree at `resource/drizzle/`
 - Commands at `opencode/command/docs-drizzle.md` and `claudecode/command/docs-drizzle.md`
 - Updated agent files with Drizzle in the list

@@ -37,7 +37,8 @@ ls ~/.claude/commands/
 ```
 
 You should see:
-- Agent files: `docs.md`
+
+- Agent files: `docs.md`, `docs-plan.md`
 - Command files: All library-specific commands (e.g., `docs-convex.md`, `docs-tanstack-query.md`, etc.), plus `docs-add.md`, `docs-update.md`, and `docs-setup.md`
 
 ## Notes
@@ -50,9 +51,10 @@ You should see:
 ## What This Sets Up
 
 This command installs:
+
 - **Documentation Agent**: Allows you to use `docs:` prefix to query multiple documentation sources
 - **Library Commands**: Individual slash commands for each library (e.g., `/docs-convex`, `/docs-effect`, `/docs-luxon`, etc.)
-- **Utility Commands**: 
-  - `/docs-add`: Add new documentation sources
-  - `/docs-update`: Update all documentation repositories
-  - `/docs-setup`: Re-run this setup (useful for updates)
+- **Utility Commands**:
+    - `/docs-add`: Add new documentation sources
+    - `/docs-update`: Update all documentation repositories
+    - `/docs-setup`: Re-run this setup (useful for updates)
