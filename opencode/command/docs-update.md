@@ -79,6 +79,12 @@ Execute the following git subtree pull commands in sequence to update each repos
     git subtree pull --prefix  resource/tanstack-table https://github.com/TanStack/table.git main
     ```
 
+- **Update TanStack Virtual repository**
+
+    ```bash
+    git subtree pull --prefix resource/tanstack-virtual https://github.com/TanStack/virtual.git main
+    ```
+
 - **Update BaseUI repository**
 
     ```bash

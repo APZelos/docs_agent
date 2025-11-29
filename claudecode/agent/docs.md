@@ -20,6 +20,7 @@ Currently you have access to the following codebases:
 - TanStack Form - `$AI_AGENT_HOME/docs_agent/resource/tanstack-form`
 - TanStack Query - `$AI_AGENT_HOME/docs_agent/resource/tanstack-query`
 - TanStack Table - `$AI_AGENT_HOME/docs_agent/resource/tanstack-table`
+- TanStack Virtual - `$AI_AGENT_HOME/docs_agent/resource/tanstack-virtual`
 - BaseUI - `$AI_AGENT_HOME/docs_agent/resource/base-ui`
 - Twilio Voice React Native - `$AI_AGENT_HOME/docs_agent/resource/twilio-voice-react-native`
 - React Aria - `$AI_AGENT_HOME/docs_agent/resource/react-aria`
@@ -69,6 +70,10 @@ When responding:
 - Before searching through the codebase, check the `docs/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
 
 ## Special instructions for TanStack Table:
+
+- Before searching through the codebase, check the `docs/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
+
+## Special instructions for TanStack Virtual:
 
 - Before searching through the codebase, check the `docs/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
 

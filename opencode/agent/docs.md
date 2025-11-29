@@ -77,6 +77,10 @@ When responding:
 
 - Before searching through the codebase, check the `docs/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
 
+## Special instructions for TanStack Virtual:
+
+- Before searching through the codebase, check the `docs/` directory to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
+
 ## Special instructions for BaseUI:
 
 - Before searching through the codebase, check the `docs/src/app/(public)` directory (that holds all the NextJS pages that are used to generate the docs website) to see if you can answer the question based on the documentation. If you can, then answer the question based on the documentation. If you cannot, then search through the codebase.
