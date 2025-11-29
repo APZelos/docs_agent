@@ -20,7 +20,6 @@ Currently you have access to the following codebases:
 - TanStack Form - `$AI_AGENT_HOME/docs_agent/resource/tanstack-form`
 - TanStack Query - `$AI_AGENT_HOME/docs_agent/resource/tanstack-query`
 - TanStack Table - `$AI_AGENT_HOME/docs_agent/resource/tanstack-table`
-- TanStack Virtual - `$AI_AGENT_HOME/docs_agent/resource/tanstack-virtual`
 - BaseUI - `$AI_AGENT_HOME/docs_agent/resource/base-ui`
 - Twilio Voice React Native - `$AI_AGENT_HOME/docs_agent/resource/twilio-voice-react-native`
 - React Aria - `$AI_AGENT_HOME/docs_agent/resource/react-aria`
@@ -28,6 +27,7 @@ Currently you have access to the following codebases:
 - React Hook Form - `$AI_AGENT_HOME/docs_agent/resource/react-hook-form`
 - Stripe JS - `$AI_AGENT_HOME/docs_agent/resource/stripe-js`
 - Stripe JS React - `$AI_AGENT_HOME/docs_agent/resource/stripe-js-react`
+- TanStack Virtual - `$AI_AGENT_HOME/docs_agent/resource/tanstack-virtual`
 
 When asked a question that involves one of the codebases you have access to, first determine if you are confident you can answer the question based on your current knowledge, or things you found previously in the conversation history. If you are not confident, then use the codebase to answer the question otherwise answer it to the best of your knowledge.
 
